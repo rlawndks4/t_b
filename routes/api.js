@@ -642,8 +642,10 @@ const addMaster = (req, res) => {
         const masterImg = '/image/' + req.file.fieldname + '/' + req.file.filename;
         const backgroundColor = req.body.backgroundColor;
         const motto = req.body.motto;
+        const principle = req.body.principle;
+        const style = req.body.style;
         //중복 체크 
-        db.query("INSERT INTO master_table (name, profile_img, background_color, motto) VALUES (?, ?, ?, ?)", [name, masterImg, backgroundColor, motto], async (err, result) => {
+        db.query("INSERT INTO master_table (name, profile_img, background_color, motto, investment_principle, investment_style) VALUES (?, ?, ?, ?, ?, ?)", [name, masterImg, backgroundColor, motto, principle, style], async (err, result) => {
 
             if (err) {
                 console.log(err)
@@ -672,9 +674,11 @@ const updateMaster = (req, res) => {
         const pk = req.body.pk;
         const backgroundColor = req.body.backgroundColor;
         const motto = req.body.motto;
+        const principle = req.body.principle;
+        const style = req.body.style;
         let masterImg = "";
-        let columns = "name=?, background_color=?, motto=?";
-        let zColumn = [name, backgroundColor, motto];
+        let columns = "name=?, background_color=?, motto=?, investment_principle=?, investment_style=?";
+        let zColumn = [name, backgroundColor, motto, principle, style];
         if (req.file) {
             masterImg = '/image/' + req.file.fieldname + '/' + req.file.filename;
             columns += ",profile_img=?";
@@ -1543,6 +1547,7 @@ const deleteItem = (req, res) => {
 const addSetting = (req, res) => {
     try {
         const image = '/image/' + req.file.fieldname + '/' + req.file.filename;
+        const { introduce, howToUse, mustRead } = req.body;
         db.query("INSERT INTO setting_table (main_img) VALUES (?)", [image], (err, result) => {
             if (err) {
                 console.log(err)
@@ -1560,8 +1565,16 @@ const addSetting = (req, res) => {
 const updateSetting = (req, res) => {
     try {
         const pk = req.body.pk;
-        const image = '/image/' + req.file.fieldname + '/' + req.file.filename;
-        db.query("UPDATE setting_table SET main_img=? WHERE pk=?", [image, pk], (err, result) => {
+        const { introduce, howToUse, mustRead } = req.body;
+        let columns = "introduce=?, how_to_use=?, must_read=?";
+        let zColumn = [introduce, howToUse, mustRead];
+        console.log(req.body)
+        if(req.file){
+            columns+=",main_img=?"
+            zColumn.push('/image/' + req.file.fieldname + '/' + req.file.filename)
+        }
+        zColumn.push(pk)
+        db.query(`UPDATE setting_table SET ${columns} WHERE pk=?`, zColumn, (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
