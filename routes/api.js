@@ -644,8 +644,9 @@ const addMaster = (req, res) => {
         const motto = req.body.motto;
         const principle = req.body.principle;
         const style = req.body.style;
+        const sectorList = req.body.sectorList;
         //중복 체크 
-        db.query("INSERT INTO master_table (name, profile_img, background_color, motto, investment_principle, investment_style) VALUES (?, ?, ?, ?, ?, ?)", [name, masterImg, backgroundColor, motto, principle, style], async (err, result) => {
+        db.query("INSERT INTO master_table (name, profile_img, background_color, motto, investment_principle, investment_style, sector_list) VALUES (?, ?, ?, ?, ?, ?, ?)", [name, masterImg, backgroundColor, motto, principle, style, sectorList], async (err, result) => {
 
             if (err) {
                 console.log(err)
@@ -676,9 +677,10 @@ const updateMaster = (req, res) => {
         const motto = req.body.motto;
         const principle = req.body.principle;
         const style = req.body.style;
+        const sectorList = req.body.sectorList;
         let masterImg = "";
-        let columns = "name=?, background_color=?, motto=?, investment_principle=?, investment_style=?";
-        let zColumn = [name, backgroundColor, motto, principle, style];
+        let columns = "name=?, background_color=?, motto=?, investment_principle=?, investment_style=?, sector_list=?";
+        let zColumn = [name, backgroundColor, motto, principle, style, sectorList];
         if (req.file) {
             masterImg = '/image/' + req.file.fieldname + '/' + req.file.filename;
             columns += ",profile_img=?";
@@ -1568,9 +1570,8 @@ const updateSetting = (req, res) => {
         const { introduce, howToUse, mustRead } = req.body;
         let columns = "introduce=?, how_to_use=?, must_read=?";
         let zColumn = [introduce, howToUse, mustRead];
-        console.log(req.body)
-        if(req.file){
-            columns+=",main_img=?"
+        if (req.file) {
+            columns += ",main_img=?"
             zColumn.push('/image/' + req.file.fieldname + '/' + req.file.filename)
         }
         zColumn.push(pk)
