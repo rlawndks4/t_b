@@ -1495,9 +1495,35 @@ const updateMasterContent = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const addSubscribeContent = (req, res) => {
+    try {
+        console.log(req.body)
+        console.log(req.files)
+        let columns = ['name','capture_date','score','weather','master_pk','main_note','take_list','operating_profit_list','company_overview_note','investment_point_list','investment_point_note',
+        'major_bussiness_list','major_bussiness_img','major_bussiness_text','major_bussiness_note','share_note','capital_change_img','capital_change_text','capital_change_note','investment_indicator_img','investment_indicator_note','etc_note'];
+        let inputs = '(?';
+        for(var i =1;i<columns.length;i++){
+            inputs += ', ?';
+        }
+        inputs += ")";
+        columns = columns.join();
+        db.query(`INSERT INTO master_subscribe_table (${columns}) VALUES ${inputs}`)
+    } catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const updateSubscribeContent = (req, res) => {
+    try {
+
+    } catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 const getItems = (req, res) => {
     try {
-        let { level, category_pk, status, user_pk, keyword, limit, page, page_cut } = req.query;
+        let { level, category_pk, status, user_pk, keyword, limit, page, page_cut, master_pk } = req.query;
         let table = req.query.table ?? "user";
         let sql = `SELECT * FROM ${table}_table `;
         let pageSql = `SELECT COUNT(*) FROM ${table}_table `;
@@ -1517,6 +1543,9 @@ const getItems = (req, res) => {
         }
         if (keyword) {
             whereStr += ` AND title LIKE '%${keyword}%' `;
+        }
+        if (master_pk) {
+            whereStr += ` AND master_pk=${master_pk} `;
         }
         if (!page_cut) {
             page_cut = 15;
@@ -1725,7 +1754,7 @@ const changeItemSequence = (req, res) => {
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
     getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents,//select
-    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, //insert 
-    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent,//update
+    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, //insert 
+    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent,//update
     deleteItem
 };

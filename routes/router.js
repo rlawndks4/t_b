@@ -4,13 +4,13 @@ const { upload } = require('../config/multerConfig')
 const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
     getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents,//select
-    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, //insert 
-    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent,//update
+    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, //insert 
+    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent,//update
     deleteItem
 } = require('./api')
 
 router.post('/editmyinfo', editMyInfo);
-router.post('/uploadprofile',upload.single('profile'), uploadProfile)
+router.post('/uploadprofile', upload.single('profile'), uploadProfile)
 router.post('/kakao/callback', kakaoCallBack);
 router.post('/sendsms', sendSms);
 router.post('/findidbyphone', findIdByPhone);
@@ -47,8 +47,10 @@ router.post('/updateuser', updateUser);
 router.get('/onsearchallitem', onSearchAllItem);
 router.get('/oneword', getOneWord);
 router.get('/oneevent', getOneEvent);
-router.get('/getmastercontents',getMasterContents);
-router.post('/updatemastercontent',updateMasterContent);
+router.get('/getmastercontents', getMasterContents);
+router.post('/updatemastercontent', updateMasterContent);
+router.post('/addsubscribecontent', upload.fields([{ name: 'major_bussiness_img' }, { name: 'capital_change_img' }, { name: 'investment_indicator_img' }]), addSubscribeContent);
+router.post('/updatesubscribecontent', upload.fields([{ name: 'major_bussiness_img' }, { name: 'capital_change_img' }, { name: 'investment_indicator_img' }]), updateSubscribeContent);
 router.get('/items', getItems);
 router.get('/item', getItem);
 router.get('/gethomecontent', getHomeContent);
