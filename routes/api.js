@@ -1447,6 +1447,54 @@ const getOneEvent = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const getMasterContents = (req, res) => {
+    try {
+        let { table, pk } = req.query;
+        let sql = `SELECT * FROM ${table}_table WHERE master_pk=${pk} ORDER BY pk ASC`;
+        db.query(sql, (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", result)
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const updateMasterContent = (req, res) => {
+    try {
+        console.log(req.body)
+        let { list, columns, table, master_pk } = req.body;
+
+        if (!columns || !table || !master_pk) {
+            return response(req, res, -100, "필요값이 비어있습니다.", [])
+        } else {
+            let joins = columns.join();
+            console.log(joins)
+            db.query(`DELETE FROM ${table}_table WHERE master_pk=?`, [master_pk], async (err, result) => {
+                if (err) {
+                    console.log(err)
+                    return response(req, res, -200, "서버 에러 발생", [])
+                } else {
+                    await db.query(`INSERT INTO ${table}_table (${joins}) VALUES ?`, [list], (err, result) => {
+                        if (err) {
+                            console.log(err)
+                            return response(req, res, -200, "서버 에러 발생", [])
+                        } else {
+                            return response(req, res, 100, "success", result)
+                        }
+                    })
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 const getItems = (req, res) => {
     try {
         let { level, category_pk, status, user_pk, keyword, limit, page, page_cut } = req.query;
@@ -1676,8 +1724,8 @@ const changeItemSequence = (req, res) => {
 }
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
-    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone,//select
+    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents,//select
     addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, //insert 
-    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword,//update
+    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent,//update
     deleteItem
 };
