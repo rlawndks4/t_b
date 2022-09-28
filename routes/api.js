@@ -1449,8 +1449,20 @@ const getOneEvent = (req, res) => {
 }
 const getMasterContents = (req, res) => {
     try {
-        let { table, pk } = req.query;
-        let sql = `SELECT * FROM ${table}_table WHERE master_pk=${pk} ORDER BY pk ASC`;
+        let { table, pk, order,desc } = req.query;
+        let sql = "";
+        let selectStr = `SELECT ${table}_table.*, master_table.name AS master_name FROM ${table}_table LEFT JOIN master_table ON ${table}_table.master_pk = master_table.pk `
+        let whereStr = "";
+        let orderStr = "";
+        if (pk) {
+            whereStr += ` WHERE master_pk=${pk} `;
+        }else{
+
+        }
+        if(order){
+            orderStr = ` ORDER BY ${table}_table.${order} ${desc?'DESC':'ASC'}`
+        }
+        sql = `${selectStr} ${whereStr} ${orderStr}`;
         db.query(sql, (err, result) => {
             if (err) {
                 console.log(err)
@@ -1532,12 +1544,12 @@ const addSubscribeContent = (req, res) => {
 
         }
         inputs += ")";
-        db.query(`INSERT INTO master_subscribe_table (${columns}) VALUES ${inputs}`, zColumn,async (err, result) => {
+        db.query(`INSERT INTO master_subscribe_table (${columns}) VALUES ${inputs}`, zColumn, async (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
-                await db.query("UPDATE master_subscribe_table SET sort=? WHERE pk=?",[result?.insertId,result?.insertId],(err, result)=>{
+                await db.query("UPDATE master_subscribe_table SET sort=? WHERE pk=?", [result?.insertId, result?.insertId], (err, result) => {
                     if (err) {
                         console.log(err)
                         return response(req, res, -200, "서버 에러 발생", [])
@@ -1546,7 +1558,7 @@ const addSubscribeContent = (req, res) => {
                 return response(req, res, 100, "success", [])
             }
         })
-        
+
     } catch (err) {
         console.log(err)
         return response(req, res, -200, "서버 에러 발생", [])
@@ -1584,7 +1596,7 @@ const updateSubscribeContent = (req, res) => {
             columns += ', capital_change_img=?';
         }
         sql = `UPDATE master_subscribe_table SET ${columns} WHERE pk=${pk}`;
-        db.query(sql,zColumn, (err, result)=>{
+        db.query(sql, zColumn, (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
