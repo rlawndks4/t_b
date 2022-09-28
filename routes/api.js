@@ -1497,36 +1497,34 @@ const updateMasterContent = (req, res) => {
 }
 const addSubscribeContent = (req, res) => {
     try {
-        console.log(req.body)
-        console.log(req.files)
-        let { name,base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
-            major_bussiness_list,major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note } = req.body;
-            let major_bussiness_img = "";
-            let investment_indicator_img = "";
-            let capital_change_img = "";
-            let columns = ['name', 'base_price','capture_date', 'score', 'weather', 'master_pk', 'main_note', 'take_list', 'operating_profit_list', 'company_overview_note', 'investment_point_list', 'investment_point_note',
+        let { name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
+            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note } = req.body;
+        let major_bussiness_img = "";
+        let investment_indicator_img = "";
+        let capital_change_img = "";
+        let columns = ['name', 'base_price', 'capture_date', 'score', 'weather', 'master_pk', 'main_note', 'take_list', 'operating_profit_list', 'company_overview_note', 'investment_point_list', 'investment_point_note',
             'major_bussiness_list', 'major_bussiness_text', 'major_bussiness_note', 'share_note', 'capital_change_text', 'capital_change_note', 'investment_indicator_note', 'etc_note'];
-        let zColumn = [name, base_price,capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
+        let zColumn = [name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
             major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note];
         let inputs = '(?';
         for (var i = 1; i < columns.length; i++) {
             inputs += ', ?';
         }
         columns = columns.join();
-        if(req.files.major_bussiness_img){
+        if (req.files.major_bussiness_img) {
             major_bussiness_img = '/image/' + req.files.major_bussiness_img[0].fieldname + '/' + req.files.major_bussiness_img[0].filename;
             zColumn.push(major_bussiness_img);
             inputs += ', ?';
             columns += ', major_bussiness_img';
         }
-        if(req.files.investment_indicator_img){
+        if (req.files.investment_indicator_img) {
             investment_indicator_img = '/image/' + req.files.investment_indicator_img[0].fieldname + '/' + req.files.investment_indicator_img[0].filename;
             zColumn.push(investment_indicator_img);
             inputs += ', ?';
             columns += ', investment_indicator_img';
 
         }
-        if(req.files.capital_change_img){
+        if (req.files.capital_change_img) {
             capital_change_img = '/image/' + req.files.capital_change_img[0].fieldname + '/' + req.files.capital_change_img[0].filename;
             zColumn.push(capital_change_img);
             inputs += ', ?';
@@ -1534,15 +1532,21 @@ const addSubscribeContent = (req, res) => {
 
         }
         inputs += ")";
-        db.query(`INSERT INTO master_subscribe_table (${columns}) VALUES ${inputs}`, zColumn, (err, result) => {
+        db.query(`INSERT INTO master_subscribe_table (${columns}) VALUES ${inputs}`, zColumn,async (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
-                console.log(result)
+                await db.query("UPDATE master_subscribe_table SET sort=? WHERE pk=?",[result?.insertId,result?.insertId],(err, result)=>{
+                    if (err) {
+                        console.log(err)
+                        return response(req, res, -200, "서버 에러 발생", [])
+                    }
+                })
                 return response(req, res, 100, "success", [])
             }
         })
+        
     } catch (err) {
         console.log(err)
         return response(req, res, -200, "서버 에러 발생", [])
@@ -1550,38 +1554,44 @@ const addSubscribeContent = (req, res) => {
 }
 const updateSubscribeContent = (req, res) => {
     try {
-        console.log(req.body)
-        console.log(req.files)
-        let { name,base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
-            major_bussiness_list,major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note,pk } = req.body;
-            let major_bussiness_img = "";
-            let investment_indicator_img = "";
-            let capital_change_img = "";
-            let columns = ['name', 'base_price','capture_date', 'score', 'weather', 'master_pk', 'main_note', 'take_list', 'operating_profit_list', 'company_overview_note', 'investment_point_list', 'investment_point_note',
+        let sql = "";
+        let { name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
+            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note, pk } = req.body;
+        let major_bussiness_img = "";
+        let investment_indicator_img = "";
+        let capital_change_img = "";
+        let columns = ['name', 'base_price', 'capture_date', 'score', 'weather', 'master_pk', 'main_note', 'take_list', 'operating_profit_list', 'company_overview_note', 'investment_point_list', 'investment_point_note',
             'major_bussiness_list', 'major_bussiness_text', 'major_bussiness_note', 'share_note', 'capital_change_text', 'capital_change_note', 'investment_indicator_note', 'etc_note'];
-        let zColumn = [name, base_price,capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
+        let zColumn = [name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
             major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note];
-        
+
         columns = columns.join("=?,");
-        if(req.files.major_bussiness_img){
+        columns += '=?'
+        if (req.files.major_bussiness_img) {
             major_bussiness_img = '/image/' + req.files.major_bussiness_img[0].fieldname + '/' + req.files.major_bussiness_img[0].filename;
             zColumn.push(major_bussiness_img);
-            columns += ', major_bussiness_img';
+            columns += ', major_bussiness_img=?';
         }
-        if(req.files.investment_indicator_img){
+        if (req.files.investment_indicator_img) {
             investment_indicator_img = '/image/' + req.files.investment_indicator_img[0].fieldname + '/' + req.files.investment_indicator_img[0].filename;
             zColumn.push(investment_indicator_img);
-            columns += ', investment_indicator_img';
+            columns += ', investment_indicator_img=?';
 
         }
-        if(req.files.capital_change_img){
+        if (req.files.capital_change_img) {
             capital_change_img = '/image/' + req.files.capital_change_img[0].fieldname + '/' + req.files.capital_change_img[0].filename;
             zColumn.push(capital_change_img);
-            columns += ', capital_change_img';
-
+            columns += ', capital_change_img=?';
         }
-
-        inputs += ")";
+        sql = `UPDATE master_subscribe_table SET ${columns} WHERE pk=${pk}`;
+        db.query(sql,zColumn, (err, result)=>{
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", [])
+            }
+        })
     } catch (err) {
         console.log(err)
         return response(req, res, -200, "서버 에러 발생", [])
