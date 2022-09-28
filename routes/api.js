@@ -1451,7 +1451,15 @@ const getMasterContents = (req, res) => {
     try {
         let { table, pk, order,desc } = req.query;
         let sql = "";
-        let selectStr = `SELECT ${table}_table.*, master_table.name AS master_name FROM ${table}_table LEFT JOIN master_table ON ${table}_table.master_pk = master_table.pk `
+        let tableSelectStr = ``;
+        if(table=='master_event'){
+            tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.level,${table}_table.date `;
+        }else if(table=='master_yield'){
+            tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.purchase_price,${table}_table.yield,${table}_table.period,${table}_table.date `;
+        }else if(table=='master_subscribe'){
+            tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.base_price,${table}_table.capture_date,${table}_table.date `;
+        }
+        let selectStr = `SELECT ${tableSelectStr}, master_table.name AS master_name FROM ${table}_table LEFT JOIN master_table ON ${table}_table.master_pk = master_table.pk `
         let whereStr = "";
         let orderStr = "";
         if (pk) {
