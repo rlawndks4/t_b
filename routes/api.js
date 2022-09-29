@@ -54,6 +54,7 @@ const onSignUp = async (req, res) => {
         const phone = req.body.phone ?? "";
         const user_level = req.body.user_level ?? 0;
         const type_num = req.body.type_num ?? 0;
+        const consulting_note = req.body.consulting_note;
         //중복 체크 
         let sql = "SELECT * FROM user_table WHERE id=?"
 
@@ -70,8 +71,8 @@ const onSignUp = async (req, res) => {
                         response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
                     }
 
-                    sql = 'INSERT INTO user_table (id, pw, name, nickname , phone, user_level, type) VALUES (?, ?, ?, ?, ?, ?, ?)'
-                    await db.query(sql, [id, hash, name, nickname, phone, user_level, type_num], async (err, result) => {
+                    sql = 'INSERT INTO user_table (id, pw, name, nickname , phone, user_level, type, consulting_note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                    await db.query(sql, [id, hash, name, nickname, phone, user_level, type_num, consulting_note], async (err, result) => {
 
                         if (err) {
                             console.log(err)
@@ -232,6 +233,14 @@ const onLoginBySns = (req, res) => {
     }
 }
 const onLoginByPhone = (req, res) => {
+    try {
+
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const getUserContent = (req, res) => {
     try {
 
     } catch (e) {
@@ -1449,14 +1458,14 @@ const getOneEvent = (req, res) => {
 }
 const getMasterContents = (req, res) => {
     try {
-        let { table, pk, order,desc } = req.query;
+        let { table, pk, order, desc } = req.query;
         let sql = "";
         let tableSelectStr = ``;
-        if(table=='master_event'){
+        if (table == 'master_event') {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.level,${table}_table.date `;
-        }else if(table=='master_yield'){
+        } else if (table == 'master_yield') {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.purchase_price,${table}_table.yield,${table}_table.period,${table}_table.date `;
-        }else if(table=='master_subscribe'){
+        } else if (table == 'master_subscribe') {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.base_price,${table}_table.capture_date,${table}_table.date `;
         }
         let selectStr = `SELECT ${tableSelectStr}, master_table.name AS master_name FROM ${table}_table LEFT JOIN master_table ON ${table}_table.master_pk = master_table.pk `
@@ -1464,11 +1473,11 @@ const getMasterContents = (req, res) => {
         let orderStr = "";
         if (pk) {
             whereStr += ` WHERE master_pk=${pk} `;
-        }else{
+        } else {
 
         }
-        if(order){
-            orderStr = ` ORDER BY ${table}_table.${order} ${desc?'DESC':'ASC'}`
+        if (order) {
+            orderStr = ` ORDER BY ${table}_table.${order} ${desc ? 'DESC' : 'ASC'}`
         }
         sql = `${selectStr} ${whereStr} ${orderStr}`;
         db.query(sql, (err, result) => {
@@ -1719,6 +1728,56 @@ const deleteItem = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const getMainContent = (req, res) => {
+    db.query("SELECT * FROM main_table ORDER BY pk DESC",(err, result)=>{
+        if (err) {
+            console.log(err)
+            return response(req, res, -200, "서버 에러 발생", [])
+        } else {
+            return response(req, res, 100, "success", result[0])
+        }
+    })
+}
+const editMainContent = (req, res) => {
+    try {
+        let { best_mater_yield_list, recommendation_list, best_list } = req.body;
+        let zColumn = [best_mater_yield_list, recommendation_list, best_list]
+        let image = undefined;
+        if (req.file) {
+            image = '/image/' + req.file.fieldname + '/' + req.file.filename;
+            zColumn.push(image)
+        }
+        db.query('SELECT * FROM main_table ORDER BY pk DESC', async (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                if (result.length > 0) {//update
+                    await db.query(`UPDATE main_table SET best_mater_yield_list=?,recommendation_list=?,best_list=?${image ? ',main_img=?' : ''} WHERE pk = (SELECT max(pk) FROM main_table)`, zColumn, (err, result) => {
+                        if (err) {
+                            console.log(err)
+                            return response(req, res, -200, "서버 에러 발생", [])
+                        } else {
+                            return response(req, res, 100, "success", [])
+                        }
+                    })
+                } else {//insert
+                    await db.query(`INSERT INTO main_table (best_mater_yield_list,recommendation_list,best_list${image ? ',main_img' : ''}) VALUES (?,?,?${image ? ',?' : ''})`, zColumn, (err, result) => {
+                        if (err) {
+                            console.log(err)
+                            return response(req, res, -200, "서버 에러 발생", [])
+                        } else {
+                            return response(req, res, 100, "success", [])
+                        }
+                    })
+                }
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 const addSetting = (req, res) => {
     try {
         const image = '/image/' + req.file.fieldname + '/' + req.file.filename;
@@ -1849,8 +1908,8 @@ const changeItemSequence = (req, res) => {
 }
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
-    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents,//select
+    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent,//select
     addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, //insert 
-    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent,//update
+    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent,//update
     deleteItem
 };
