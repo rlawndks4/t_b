@@ -1553,9 +1553,32 @@ const getMasterContent = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
-const getMasterContents = (req, res) => {
+const getUserSubscribeMasters = (pk) =>{
+    return new Promise((resolve, reject) => {
+        db.query("SELECT * FROM user_master_connect_table WHERE user_pk=?",[pk], (err, result, fields) => {
+            if (err) {
+                console.log(sql)
+                console.log(err)
+                reject({
+                    code: -200,
+                    result: []
+                })
+            }
+            else {
+                resolve({
+                    code : 200, 
+                    result : result
+                })
+            }
+        })
+    })
+}
+const getMasterContents = async (req, res) => {
     try {
-        let { table, pk, order, desc } = req.query;
+        
+        let { table, pk, order, desc, is_subscribe, user_pk } = req.query;
+
+        
         let sql = "";
         let tableSelectStr = ``;
         if (table == 'master_event') {
@@ -1573,6 +1596,7 @@ const getMasterContents = (req, res) => {
         } else {
 
         }
+       
         if (order) {
             orderStr = ` ORDER BY ${table}_table.${order} ${desc ? 'DESC' : 'ASC'}`
         }
