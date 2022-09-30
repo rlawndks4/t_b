@@ -1740,7 +1740,8 @@ const getMainContent = (req, res) => {
 }
 const editMainContent = (req, res) => {
     try {
-        let { best_mater_yield_list, recommendation_list, best_list } = req.body;
+        let { best_mater_yield_list, recommendation_list, best_list, pk } = req.body;
+        console.log(req.body)
         let zColumn = [best_mater_yield_list, recommendation_list, best_list]
         let image = undefined;
         if (req.file) {
@@ -1753,7 +1754,7 @@ const editMainContent = (req, res) => {
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
                 if (result.length > 0) {//update
-                    await db.query(`UPDATE main_table SET best_mater_yield_list=?,recommendation_list=?,best_list=?${image ? ',main_img=?' : ''} WHERE pk = (SELECT max(pk) FROM main_table)`, zColumn, (err, result) => {
+                    await db.query(`UPDATE main_table SET best_mater_yield_list=?,recommendation_list=?,best_list=?${image ? ',main_img=?' : ''} WHERE pk = ${pk??0}`, zColumn, (err, result) => {
                         if (err) {
                             console.log(err)
                             return response(req, res, -200, "서버 에러 발생", [])
