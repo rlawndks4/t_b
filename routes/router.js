@@ -3,7 +3,7 @@ const router = express.Router();
 const { upload } = require('../config/multerConfig')
 const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
-    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent, getUserContent,//select
+    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent, getUserContent, getMasterContent,//select
     addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, addSubscribe, //insert 
     updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent,//update
     deleteItem
@@ -51,6 +51,7 @@ router.get('/onsearchallitem', onSearchAllItem);
 router.get('/oneword', getOneWord);
 router.get('/oneevent', getOneEvent);
 router.get('/getmastercontents', getMasterContents);
+router.get('/getmastercontent', getMasterContent);
 router.post('/updatemastercontent', updateMasterContent);
 router.post('/addsubscribecontent', upload.fields([{ name: 'major_bussiness_img' }, { name: 'capital_change_img' }, { name: 'investment_indicator_img' }]), addSubscribeContent);
 router.post('/updatesubscribecontent', upload.fields([{ name: 'major_bussiness_img' }, { name: 'capital_change_img' }, { name: 'investment_indicator_img' }]), updateSubscribeContent);

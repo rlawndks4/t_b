@@ -242,13 +242,13 @@ const onLoginByPhone = (req, res) => {
 }
 const getUserContent = (req, res) => {
     try {
-        let {pk} = req.query;
-        db.query("SELECT * FROM user_table WHERE pk=?",[pk],(err, result1)=>{
+        let { pk } = req.query;
+        db.query("SELECT * FROM user_table WHERE pk=?", [pk], (err, result1) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
-                db.query("SELECT * FROM user_table WHERE pk=?",[pk],(err, result2)=>{
+                db.query("SELECT * FROM user_table WHERE pk=?", [pk], (err, result2) => {
                     if (err) {
                         console.log(err)
                         return response(req, res, -200, "서버 에러 발생", [])
@@ -265,16 +265,16 @@ const getUserContent = (req, res) => {
 }
 const addSubscribe = (req, res) => {
     try {
-        const {user_pk, master_pk} = req.body;
-        db.query("SELECT * FROM user_master_connect_table WHERE user_pk=? AND master_pk=? ",[user_pk, master_pk],async(err, result)=>{
+        const { user_pk, master_pk } = req.body;
+        db.query("SELECT * FROM user_master_connect_table WHERE user_pk=? AND master_pk=? ", [user_pk, master_pk], async (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
-                if(result.length>0){
+                if (result.length > 0) {
                     return response(req, res, -50, "이미 구독한 거장입니다.", [])
-                }else{
-                    await db.query("INSERT INTO user_master_connect_table (user_pk, master_pk) VALUES (?,?)",[user_pk, master_pk],(err, result)=>{
+                } else {
+                    await db.query("INSERT INTO user_master_connect_table (user_pk, master_pk) VALUES (?,?)", [user_pk, master_pk], (err, result) => {
                         if (err) {
                             console.log(err)
                             return response(req, res, -200, "서버 에러 발생", [])
@@ -283,10 +283,10 @@ const addSubscribe = (req, res) => {
                         }
                     })
                 }
-                
+
             }
         })
-        
+
     } catch (err) {
         console.log(err)
         return response(req, res, -200, "서버 에러 발생", [])
@@ -1500,6 +1500,22 @@ const getOneEvent = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const getMasterContent = (req, res) => {
+    try {
+        let { table, pk } = req.query;
+        db.query(`SELECT ${table}_table.*, master_table.name AS master_name, master_table.profile_img AS master_profile_img FROM ${table}_table LEFT JOIN master_table ON ${table}_table.master_pk=master_table.pk WHERE ${table}_table.pk=?`, [pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", result[0])
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 const getMasterContents = (req, res) => {
     try {
         let { table, pk, order, desc } = req.query;
@@ -1955,7 +1971,7 @@ const changeItemSequence = (req, res) => {
 }
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
-    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent, getUserContent,//select
+    getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent, getUserContent, getMasterContent,//select
     addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, addSubscribe, //insert 
     updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent,//update
     deleteItem
