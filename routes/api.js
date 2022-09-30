@@ -242,7 +242,6 @@ const onLoginByPhone = (req, res) => {
 }
 const getUserContent = (req, res) => {
     try {
-        console.log(req.query)
         let { pk } = req.query;
         db.query("SELECT * FROM user_table WHERE pk=?", [pk], (err, result1) => {
             if (err) {
