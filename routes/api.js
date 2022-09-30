@@ -242,18 +242,19 @@ const onLoginByPhone = (req, res) => {
 }
 const getUserContent = (req, res) => {
     try {
+        console.log(req.query)
         let { pk } = req.query;
         db.query("SELECT * FROM user_table WHERE pk=?", [pk], (err, result1) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
-                db.query("SELECT * FROM user_table WHERE pk=?", [pk], (err, result2) => {
+                db.query("SELECT user_master_connect_table.*, master_table.name AS master_name, master_table.profile_img FROM user_master_connect_table LEFT JOIN master_table ON user_master_connect_table.master_pk=master_table.pk WHERE user_master_connect_table.user_pk=? ORDER BY user_master_connect_table.pk DESC", [pk], (err, result2) => {
                     if (err) {
                         console.log(err)
                         return response(req, res, -200, "서버 에러 발생", [])
                     } else {
-                        return response(req, res, 100, "success", [])
+                        return response(req, res, 100, "success", {user:result1[0],subscribes:result2})
                     }
                 })
             }
@@ -596,9 +597,9 @@ const getUserToken = (req, res) => {
             let pk = decode.pk;
             let nickname = decode.nickname;
             let phone = decode.phone;
-            let level = decode.user_level;
+            let user_level = decode.user_level;
             let profile_img = decode.profile_img;
-            res.send({ id, pk, nickname, phone, level, profile_img })
+            res.send({ id, pk, nickname, phone, user_level, profile_img })
         }
         else {
             res.send({
@@ -673,7 +674,44 @@ const getUsers = (req, res) => {
 
 const updateUser = (req, res) => {
     try {
-
+        let {id, pw, name, nickname, phone, user_level,consulting_note,pk} = req.body;
+        let sql = `UPDATE user_table SET id=?, name=?, nickname=?, phone=?, user_level=?,consulting_note=?`;
+        let zColumn = [id, name, nickname, phone, user_level,consulting_note];
+        if(pw){
+            crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
+                // bcrypt.hash(pw, salt, async (err, hash) => {
+                let hash = decoded.toString('base64')
+                
+                if (err) {
+                    console.log(err)
+                    response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
+                }
+                zColumn.push(hash);
+                sql += `,pw=? WHERE pk=${pk}`
+                await db.query(sql,zColumn,(err, result)=>{
+                    if (err) {
+                        console.log(err)
+                        response(req, res, -200, "fail", [])
+                    }
+                    else {
+                        response(req, res, 200, "success", [])
+                    }
+                })
+            })
+        }else{
+            zColumn.push(pk);
+            sql += `WHERE pk=${pk}`;
+            db.query(sql,zColumn,(err, result)=>{
+                if (err) {
+                    console.log(err)
+                    response(req, res, -200, "fail", [])
+                }
+                else {
+                    response(req, res, 200, "success", [])
+                }
+            })
+        }
+        
     } catch (err) {
         console.log(err)
         return response(req, res, -200, "서버 에러 발생", [])
