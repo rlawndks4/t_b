@@ -248,7 +248,7 @@ const getUserContent = (req, res) => {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
-                db.query("SELECT user_master_connect_table.*, master_table.name AS master_name, master_table.profile_img FROM user_master_connect_table LEFT JOIN master_table ON user_master_connect_table.master_pk=master_table.pk WHERE user_master_connect_table.user_pk=? ORDER BY user_master_connect_table.pk DESC", [pk], (err, result2) => {
+                db.query("SELECT user_master_connect_table.*, master_table.pk AS master_pk, master_table.name AS master_name, master_table.profile_img FROM user_master_connect_table LEFT JOIN master_table ON user_master_connect_table.master_pk=master_table.pk WHERE user_master_connect_table.user_pk=? ORDER BY user_master_connect_table.pk DESC", [pk], (err, result2) => {
                     if (err) {
                         console.log(err)
                         return response(req, res, -200, "서버 에러 발생", [])
