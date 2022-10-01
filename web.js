@@ -40,75 +40,26 @@ app.get('/', (req, res) => {
     console.log("back-end initialized")
     res.send('back-end initialized')
 });
-const HTTP_PORT = 8001; const HTTPS_PORT = 8443; 
-//const options = { key: fs.readFileSync('../ssl/cert.key'), cert: fs.readFileSync('../ssl/cert.crt') };
+const is_test = true;
 
-app.post('/api/addad', upload.single('image'), (req, res) =>{
-        try{
-                
-                if(checkLevel(req.cookies.token, 40))
-                {
-                        
-                        const sql = 'INSERT INTO ad_table  (title, image_src) VALUES (? , ?)'
-                        const title = req.body.title
-                        const {image, isNull} = namingImagesPath("ad", req.file)
-                        const param = [title, image]
-                        console.log(req.file)        
-                                db.query(sql, param, (err, rows, feild)=>{
-                                        if (err) {
-                                                
-                                                console.log(err)
-                                                response(req, res, -200, "광고 추가 실패", [])
-                                        }
-                                        else {
-                                                
-                                                response(req, res, 200, "광고 추가 성공", [])
-                                        }
-                                })
-                }
-                else
-                        lowLevelResponse(req, res)
-        }
-        catch(err)
-        {
-        console.log(err)
-        response(req, res, -200, "서버 에러 발생", [])
-        }
-})
-//가게 사진 추가
-app.post('/api/addimage', upload.single('image'), (req, res) =>{
-        try{
-                
-                if(checkLevel(req.cookies.token, 40))
-                {
-                        
-                        const sql = 'INSERT INTO image_table (shop_pk, image_src) VALUES (? , ?)'
-                        const pk = req.body.pk
-                        const {image, isNull} = namingImagesPath("ad", req.file)
-                        const param = [pk, image]
-                        
-                        console.log(req.file)  
-                                
-                                db.query(sql, param, (err, rows, feild)=>{
-                                        if (err) {
-                                                
-                                                console.log(err)
-                                                response(req, res, -200, "이미지 추가 실패", [])
-                                        }
-                                        else {
-                                                
-                                                response(req, res, 200, "이미지 추가 성공", [])
-                                        }
-                                })
-                }
-                else
-                        lowLevelResponse(req, res)
-        }
-        catch(err)
-        {
-        console.log(err)
-        response(req, res, -200, "서버 에러 발생", [])
-        }
-})
-http.createServer(app).listen(HTTP_PORT,console.log("Server on "+HTTP_PORT)); 
-//https.createServer(options, app).listen(HTTPS_PORT);
+const HTTP_PORT = 8001;
+const HTTPS_PORT = 8443;
+
+if (is_test) {
+        http.createServer(app).listen(HTTP_PORT), console.log("Server on " + HTTP_PORT);
+
+} else {
+        const options = { // letsencrypt로 받은 인증서 경로를 입력해 줍니다.
+                ca: fs.readFileSync("/etc/letsencrypt/live/masterpick.co.kr/fullchain.pem"),
+                key: fs.readFileSync("/etc/letsencrypt/live/masterpick.co.kr/privkey.pem"),
+                cert: fs.readFileSync("/etc/letsencrypt/live/masterpick.co.kr/cert.pem")
+        };
+        https.createServer(options, app).listen(HTTPS_PORT, console.log("Server on " + HTTPS_PORT));
+
+}
+
+
+// Default route for server status
+app.get('/', (req, res) => {
+        res.json({ message: `Server is running on port ${req.secure ? HTTPS_PORT : HTTP_PORT}` });
+});
