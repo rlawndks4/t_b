@@ -253,7 +253,7 @@ const getUserContent = (req, res) => {
                         console.log(err)
                         return response(req, res, -200, "서버 에러 발생", [])
                     } else {
-                        return response(req, res, 100, "success", {user:result1[0],subscribes:result2})
+                        return response(req, res, 100, "success", { user: result1[0], subscribes: result2 })
                     }
                 })
             }
@@ -673,21 +673,21 @@ const getUsers = (req, res) => {
 
 const updateUser = (req, res) => {
     try {
-        let {id, pw, name, nickname, phone, user_level,consulting_note,pk} = req.body;
+        let { id, pw, name, nickname, phone, user_level, consulting_note, pk } = req.body;
         let sql = `UPDATE user_table SET id=?, name=?, nickname=?, phone=?, user_level=?,consulting_note=?`;
-        let zColumn = [id, name, nickname, phone, user_level,consulting_note];
-        if(pw){
+        let zColumn = [id, name, nickname, phone, user_level, consulting_note];
+        if (pw) {
             crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
                 // bcrypt.hash(pw, salt, async (err, hash) => {
                 let hash = decoded.toString('base64')
-                
+
                 if (err) {
                     console.log(err)
                     response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
                 }
                 zColumn.push(hash);
                 sql += `,pw=? WHERE pk=${pk}`
-                await db.query(sql,zColumn,(err, result)=>{
+                await db.query(sql, zColumn, (err, result) => {
                     if (err) {
                         console.log(err)
                         response(req, res, -200, "fail", [])
@@ -697,10 +697,10 @@ const updateUser = (req, res) => {
                     }
                 })
             })
-        }else{
+        } else {
             zColumn.push(pk);
             sql += `WHERE pk=${pk}`;
-            db.query(sql,zColumn,(err, result)=>{
+            db.query(sql, zColumn, (err, result) => {
                 if (err) {
                     console.log(err)
                     response(req, res, -200, "fail", [])
@@ -710,7 +710,7 @@ const updateUser = (req, res) => {
                 }
             })
         }
-        
+
     } catch (err) {
         console.log(err)
         return response(req, res, -200, "서버 에러 발생", [])
@@ -1553,9 +1553,9 @@ const getMasterContent = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
-const getUserSubscribeMasters = (pk) =>{
+const getUserSubscribeMasters = (pk) => {
     return new Promise((resolve, reject) => {
-        db.query("SELECT * FROM user_master_connect_table WHERE user_pk=?",[pk], (err, result, fields) => {
+        db.query("SELECT * FROM user_master_connect_table WHERE user_pk=?", [pk], (err, result, fields) => {
             if (err) {
                 console.log(sql)
                 console.log(err)
@@ -1566,8 +1566,8 @@ const getUserSubscribeMasters = (pk) =>{
             }
             else {
                 resolve({
-                    code : 200, 
-                    result : result
+                    code: 200,
+                    result: result
                 })
             }
         })
@@ -1575,10 +1575,10 @@ const getUserSubscribeMasters = (pk) =>{
 }
 const getMasterContents = async (req, res) => {
     try {
-        
-        let { table, pk, order, desc, is_subscribe, user_pk } = req.query;
+        console.log(req.body)
+        let { table, pk, order, desc, is_subscribe, user_pk, overlap_list, status } = req.body;
 
-        
+
         let sql = "";
         let tableSelectStr = ``;
         if (table == 'master_event') {
@@ -1587,16 +1587,24 @@ const getMasterContents = async (req, res) => {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.purchase_price,${table}_table.yield,${table}_table.period,${table}_table.date `;
         } else if (table == 'master_subscribe') {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.base_price,${table}_table.capture_date,${table}_table.date `;
+        } else {
+            return response(req, res, -200, "잘못된 데이터 입니다.", [])
         }
         let selectStr = `SELECT ${tableSelectStr}, master_table.name AS master_name FROM ${table}_table LEFT JOIN master_table ON ${table}_table.master_pk = master_table.pk `
         let whereStr = "";
         let orderStr = "";
+        if (status) {
+            whereStr += ` WHERE master_table.status=${status} `;
+        }
         if (pk) {
-            whereStr += ` WHERE master_pk=${pk} `;
-        } else {
+            whereStr += ` ${status ? 'AND' : 'WHERE'} master_pk=${pk} `;
+        } else if (overlap_list && overlap_list.length > 0) {
+            let join = overlap_list.join();
+            whereStr += ` ${status ? 'AND' : 'WHERE'} master_pk IN (${join}) `;
+        }
+        if (status) {
 
         }
-       
         if (order) {
             orderStr = ` ORDER BY ${table}_table.${order} ${desc ? 'DESC' : 'ASC'}`
         }
@@ -1864,20 +1872,42 @@ const getMainContent = (req, res) => {
 const editMainContent = (req, res) => {
     try {
         let { best_mater_yield_list, recommendation_list, best_list, pk } = req.body;
-        console.log(req.body)
-        let zColumn = [best_mater_yield_list, recommendation_list, best_list]
-        let image = undefined;
-        if (req.file) {
-            image = '/image/' + req.file.fieldname + '/' + req.file.filename;
-            zColumn.push(image)
+        let list = Object.keys(req.body);
+        let zColumn = list
+        let key = "";
+        let value = undefined;
+        let sql = '';
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] != 'pk') {
+                key = list[i];
+                value = req.body[key];
+            }
         }
+        if (req.files) {
+            if (req.files.main) {
+                key = 'main_img'
+                value = '/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
+            }
+            if (req.files.banner) {
+                key = 'banner_img'
+                value = '/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
+            }
+            sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
+        } else {
+            if (list.length == 1) {
+                response(req, res, 100, "success", [])
+            } else {
+                sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
+            }
+        }
+
         db.query('SELECT * FROM main_table ORDER BY pk DESC', async (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
                 if (result.length > 0) {//update
-                    await db.query(`UPDATE main_table SET best_mater_yield_list=?,recommendation_list=?,best_list=?${image ? ',main_img=?' : ''} WHERE pk = ${pk ?? 0}`, zColumn, (err, result) => {
+                    await db.query(sql, [value, result[0].pk], (err, result) => {
                         if (err) {
                             console.log(err)
                             return response(req, res, -200, "서버 에러 발생", [])
