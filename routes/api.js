@@ -1584,7 +1584,7 @@ const getMasterContents = async (req, res) => {
         if (table == 'master_event') {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.level,${table}_table.date `;
         } else if (table == 'master_yield') {
-            tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.purchase_price,${table}_table.yield,${table}_table.period,${table}_table.date `;
+            tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.purchase_price,${table}_table.sell_price,${table}_table.yield,${table}_table.period,${table}_table.date `;
         } else if (table == 'master_subscribe') {
             tableSelectStr = `${table}_table.pk, ${table}_table.name,${table}_table.base_price,${table}_table.capture_date,${table}_table.date `;
         } else {
@@ -1890,6 +1890,10 @@ const editMainContent = (req, res) => {
                 key = 'banner_img'
                 value ='/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
             }
+            if(req.files.recommendation_banner){
+                key = 'recommendation_banner_img'
+                value ='/image/' + req.files.recommendation_banner[0].fieldname + '/' + req.files.recommendation_banner[0].filename;
+            }
             sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
         } else {
             if (list.length == 1) {
@@ -1898,7 +1902,15 @@ const editMainContent = (req, res) => {
                 sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
             }
         }
-
+        if(req.body.recommendation_list){
+            console.log(typeof req.body.recommendation_list)
+            if(req.files.recommendation_banner){
+                value ='/image/' + req.files.recommendation_banner[0].fieldname + '/' + req.files.recommendation_banner[0].filename;
+                sql = `UPDATE main_table SET recommendation_list='${req.body.recommendation_list}', recommendation_banner_img=? WHERE pk=?`
+            }else{
+                sql = `UPDATE main_table SET recommendation_list=? WHERE pk=?`
+            }
+        }
         db.query('SELECT * FROM main_table ORDER BY pk DESC', async (err, result) => {
             if (err) {
                 console.log(err)
