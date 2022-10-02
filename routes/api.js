@@ -1575,7 +1575,6 @@ const getUserSubscribeMasters = (pk) => {
 }
 const getMasterContents = async (req, res) => {
     try {
-        console.log(req.body)
         let { table, pk, order, desc, is_subscribe, user_pk, overlap_list, status } = req.body;
 
 
