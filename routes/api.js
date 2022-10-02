@@ -1879,12 +1879,8 @@ const editMainContent = (req, res) => {
         let key = "";
         let value = undefined;
         let sql = '';
-        for (var i = 0; i < list.length; i++) {
-            if (list[i] != 'pk') {
-                key = list[i];
-                value = req.body[key];
-            }
-        }
+            key = list[0];
+            value = req.body[key];
         if (req.files) {
             if(req.files.main){
                 key = 'main_img'
