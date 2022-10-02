@@ -1872,6 +1872,8 @@ const getMainContent = (req, res) => {
 const editMainContent = (req, res) => {
     try {
         let { best_mater_yield_list, recommendation_list, best_list, pk } = req.body;
+        console.log(req.files)
+        console.log(req.body)
         let list = Object.keys(req.body);
         let zColumn = list
         let key = "";
@@ -1884,13 +1886,13 @@ const editMainContent = (req, res) => {
             }
         }
         if (req.files) {
-            if (req.files.main) {
+            if(req.files.main){
                 key = 'main_img'
-                value = '/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
+                value ='/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
             }
-            if (req.files.banner) {
+            if(req.files.banner){
                 key = 'banner_img'
-                value = '/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
+                value ='/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
             }
             sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
         } else {
