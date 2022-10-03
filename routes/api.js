@@ -1608,6 +1608,7 @@ const getMasterContents = async (req, res) => {
             orderStr = ` ORDER BY ${table}_table.${order} ${desc ? 'DESC' : 'ASC'}`
         }
         sql = `${selectStr} ${whereStr} ${orderStr}`;
+        console.log(sql)
         db.query(sql, (err, result) => {
             if (err) {
                 console.log(err)
@@ -1870,53 +1871,60 @@ const getMainContent = (req, res) => {
 }
 const editMainContent = (req, res) => {
     try {
-        let { best_mater_yield_list, recommendation_list, best_list, pk } = req.body;
-        console.log(req.files)
-        console.log(req.body)
-        let list = Object.keys(req.body);
-        let zColumn = list
+        let { category, best_master_yield_list, recommendation_list, best_list, pk } = req.body;
         let key = "";
         let value = undefined;
-        let sql = '';
-            key = list[0];
-            value = req.body[key];
-        if (req.files) {
-            if(req.files.main){
-                key = 'main_img'
-                value ='/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
-            }
-            if(req.files.banner){
-                key = 'banner_img'
-                value ='/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
-            }
-            if(req.files.recommendation_banner){
-                key = 'recommendation_banner_img'
-                value ='/image/' + req.files.recommendation_banner[0].fieldname + '/' + req.files.recommendation_banner[0].filename;
-            }
-            sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
-        } else {
-            if (list.length == 1) {
-                response(req, res, 100, "success", [])
-            } else {
-                sql = `UPDATE main_table SET ${key}=? WHERE pk=?`;
-            }
-        }
-        if(req.body.recommendation_list){
-            console.log(typeof req.body.recommendation_list)
-            if(req.files.recommendation_banner){
-                value ='/image/' + req.files.recommendation_banner[0].fieldname + '/' + req.files.recommendation_banner[0].filename;
-                sql = `UPDATE main_table SET recommendation_list='${req.body.recommendation_list}', recommendation_banner_img=? WHERE pk=?`
+        let sql = `UPDATE main_table SET ?=? WHERE pk=?`;
+        let zColumn = [];
+        if(category=='main_img'){
+            if(!req.files.main){
+                return response(req, res, 100, "success", [])
             }else{
-                sql = `UPDATE main_table SET recommendation_list=? WHERE pk=?`
+                value ='/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
+                zColumn = [value];
+                sql = `UPDATE main_table SET main_img=? WHERE pk=?`;
             }
+        }else if(category=='best_master_yield_list'){
+            value = best_master_yield_list;
+            zColumn = [value];
+            sql = `UPDATE main_table SET best_master_yield_list=? WHERE pk=?`;
+        }else if(category=='recommendation_list'){
+            value = recommendation_list;
+            zColumn = [value];
+            sql = `UPDATE main_table SET recommendation_list=? WHERE pk=?`;
+        }else if(category=='best_list'){
+            value = best_list;
+            zColumn = [value];
+            sql = `UPDATE main_table SET best_list=? WHERE pk=?`;
+        }else if(category=='banner_img'){
+            if(!req.files.recommendation_banner&&!req.files.banner){
+                return response(req, res, 100, "success", [])
+            }else{
+                if(req.files.recommendation_banner&&req.files.banner){
+                    sql = `UPDATE main_table SET recommendation_banner_img=?, banner_img=? WHERE pk=?`;
+                    let image1 = '/image/' + req.files.recommendation_banner[0].fieldname + '/' + req.files.recommendation_banner[0].filename;
+                    let image2 = '/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
+                    zColumn = [image1,image2];
+                }else{
+                    key = req.files.recommendation_banner?'recommendation_banner_img=?':'banner_img=?';
+                    value = '/image/' + req.files[`${key.substring(0,key.length-6)}`][0].fieldname + '/' + req.files[`${key.substring(0,key.length-6)}`][0].filename
+                    sql = `UPDATE main_table SET ${key} WHERE pk=?`
+                    zColumn = [value];
+                }
+            }
+        }else{
+            return response(req, res, -100, "fail", [])
         }
+        
+        
         db.query('SELECT * FROM main_table ORDER BY pk DESC', async (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
                 if (result.length > 0) {//update
-                    await db.query(sql, [value, result[0].pk], (err, result) => {
+                    zColumn.push(result[0].pk)
+                    await db.query(sql, zColumn, (err, result) => {
                         if (err) {
                             console.log(err)
                             return response(req, res, -200, "서버 에러 발생", [])
@@ -1925,14 +1933,7 @@ const editMainContent = (req, res) => {
                         }
                     })
                 } else {//insert
-                    await db.query(`INSERT INTO main_table (best_mater_yield_list,recommendation_list,best_list${image ? ',main_img' : ''}) VALUES (?,?,?${image ? ',?' : ''})`, zColumn, (err, result) => {
-                        if (err) {
-                            console.log(err)
-                            return response(req, res, -200, "서버 에러 발생", [])
-                        } else {
-                            return response(req, res, 100, "success", [])
-                        }
-                    })
+                    return response(req, res, -100, "fail", [])
                 }
             }
         })

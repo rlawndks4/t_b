@@ -60,7 +60,7 @@ router.get('/item', getItem);
 router.get('/gethomecontent', getHomeContent);
 router.post('/updatesetting', upload.single('master'), updateSetting);
 router.post('/addsetting', upload.single('master'), addSetting);
-router.post('/editmaincontent', upload.fields([{ name: 'main' }, { name: 'banner' }, { name: 'recommendation_banner' }]), editMainContent);
+router.post('/editmaincontent', upload.fields([{ name: 'main' }, { name: 'recommendation_banner' }, { name: 'banner' }]), editMainContent);
 router.get('/getmaincontent', getMainContent);
 router.get('/setting', getSetting);
 router.post('/updatestatus', updateStatus);
