@@ -1439,6 +1439,48 @@ const updateNotice = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const addMustRead = (req, res) => {
+    try {
+        const { title, note, user_pk } = req.body;
+        db.query("INSERT INTO must_read_table ( title, note,user_pk) VALUES (?, ?, ?)", [title, note, user_pk], async (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                await db.query("UPDATE must_read_table SET sort=? WHERE pk=?", [result?.insertId, result?.insertId], (err, resultup) => {
+                    if (err) {
+                        console.log(err)
+                        response(req, res, -200, "fail", [])
+                    }
+                    else {
+                        response(req, res, 200, "success", [])
+                    }
+                })
+            }
+        })
+    }
+    catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const updateMustRead = (req, res) => {
+    try {
+        const { title, note, pk } = req.body;
+        db.query("UPDATE must_read_table SET  title=?, note=? WHERE pk=?", [title, note, pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", [])
+            }
+        })
+    }
+    catch (err) {
+        console.log(err)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 const addNoteImage = (req, res) => {
     try {
         console.log(req.file)
@@ -1876,47 +1918,47 @@ const editMainContent = (req, res) => {
         let value = undefined;
         let sql = `UPDATE main_table SET ?=? WHERE pk=?`;
         let zColumn = [];
-        if(category=='main_img'){
-            if(!req.files.main){
+        if (category == 'main_img') {
+            if (!req.files.main) {
                 return response(req, res, 100, "success", [])
-            }else{
-                value ='/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
+            } else {
+                value = '/image/' + req.files.main[0].fieldname + '/' + req.files.main[0].filename;
                 zColumn = [value];
                 sql = `UPDATE main_table SET main_img=? WHERE pk=?`;
             }
-        }else if(category=='best_master_yield_list'){
+        } else if (category == 'best_master_yield_list') {
             value = best_master_yield_list;
             zColumn = [value];
             sql = `UPDATE main_table SET best_master_yield_list=? WHERE pk=?`;
-        }else if(category=='recommendation_list'){
+        } else if (category == 'recommendation_list') {
             value = recommendation_list;
             zColumn = [value];
             sql = `UPDATE main_table SET recommendation_list=? WHERE pk=?`;
-        }else if(category=='best_list'){
+        } else if (category == 'best_list') {
             value = best_list;
             zColumn = [value];
             sql = `UPDATE main_table SET best_list=? WHERE pk=?`;
-        }else if(category=='banner_img'){
-            if(!req.files.recommendation_banner&&!req.files.banner){
+        } else if (category == 'banner_img') {
+            if (!req.files.recommendation_banner && !req.files.banner) {
                 return response(req, res, 100, "success", [])
-            }else{
-                if(req.files.recommendation_banner&&req.files.banner){
+            } else {
+                if (req.files.recommendation_banner && req.files.banner) {
                     sql = `UPDATE main_table SET recommendation_banner_img=?, banner_img=? WHERE pk=?`;
                     let image1 = '/image/' + req.files.recommendation_banner[0].fieldname + '/' + req.files.recommendation_banner[0].filename;
                     let image2 = '/image/' + req.files.banner[0].fieldname + '/' + req.files.banner[0].filename;
-                    zColumn = [image1,image2];
-                }else{
-                    key = req.files.recommendation_banner?'recommendation_banner_img=?':'banner_img=?';
-                    value = '/image/' + req.files[`${key.substring(0,key.length-6)}`][0].fieldname + '/' + req.files[`${key.substring(0,key.length-6)}`][0].filename
+                    zColumn = [image1, image2];
+                } else {
+                    key = req.files.recommendation_banner ? 'recommendation_banner_img=?' : 'banner_img=?';
+                    value = '/image/' + req.files[`${key.substring(0, key.length - 6)}`][0].fieldname + '/' + req.files[`${key.substring(0, key.length - 6)}`][0].filename
                     sql = `UPDATE main_table SET ${key} WHERE pk=?`
                     zColumn = [value];
                 }
             }
-        }else{
+        } else {
             return response(req, res, -100, "fail", [])
         }
-        
-        
+
+
         db.query('SELECT * FROM main_table ORDER BY pk DESC', async (err, result) => {
             if (err) {
                 console.log(err)
@@ -1942,33 +1984,27 @@ const editMainContent = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
-const addSetting = (req, res) => {
-    try {
-        const image = '/image/' + req.file.fieldname + '/' + req.file.filename;
-        const { introduce, howToUse, mustRead } = req.body;
-        db.query("INSERT INTO setting_table (main_img) VALUES (?)", [image], (err, result) => {
-            if (err) {
-                console.log(err)
-                return response(req, res, -200, "서버 에러 발생", [])
-            } else {
-                return response(req, res, 100, "success", [])
-            }
-        })
-    }
-    catch (err) {
-        console.log(err)
-        return response(req, res, -200, "서버 에러 발생", [])
-    }
-}
+
 const updateSetting = (req, res) => {
     try {
         const pk = req.body.pk;
-        const { introduce, howToUse, mustRead } = req.body;
-        let columns = "introduce=?, how_to_use=?, must_read=?";
-        let zColumn = [introduce, howToUse, mustRead];
+        const category = req.body.category;
+        const { introduce, howToUse } = req.body;
+        let columns = "";
+        let zColumn = [];
         if (req.file) {
-            columns += ",main_img=?"
+            columns += "main_img=?"
             zColumn.push('/image/' + req.file.fieldname + '/' + req.file.filename)
+        }else{
+            if(category=='main_img'){
+                return response(req, res, 100, "success", [])
+            }else if(category=='introduce'){
+                columns += "introduce=?"
+                zColumn.push(introduce)
+            }else if(category=='how_to_use'){
+                columns += "how_to_use=?"
+                zColumn.push(howToUse)
+            }
         }
         zColumn.push(pk)
         db.query(`UPDATE setting_table SET ${columns} WHERE pk=?`, zColumn, (err, result) => {
@@ -2073,7 +2109,7 @@ const changeItemSequence = (req, res) => {
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
     getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent, getUserContent, getMasterContent,//select
-    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, addSubscribe, //insert 
-    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent,//update
+    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addChannel, addFeatureCategory, addNotice, addSubscribeContent, addSubscribe, addMustRead, //insert 
+    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent, updateMustRead,//update
     deleteItem
 };

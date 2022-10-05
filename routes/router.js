@@ -4,8 +4,8 @@ const { upload } = require('../config/multerConfig')
 const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, uploadProfile, onLoginBySns,//auth
     getUsers, getOneWord, getOneEvent, getItems, getItem, getHomeContent, getSetting, getVideoContent, getChannelList, getVideo, onSearchAllItem, findIdByPhone, findAuthByIdAndPhone, getMasterContents, getMainContent, getUserContent, getMasterContent,//select
-    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addSetting, addChannel, addFeatureCategory, addNotice, addSubscribeContent, addSubscribe, //insert 
-    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent,//update
+    addMaster, onSignUp, addOneWord, addOneEvent, addItem, addIssueCategory, addNoteImage, addVideo, addChannel, addFeatureCategory, addNotice, addSubscribeContent, addSubscribe, addMustRead, //insert 
+    updateUser, updateItem, updateIssueCategory, updateVideo, updateMaster, updateSetting, updateStatus, updateChannel, updateFeatureCategory, updateNotice, onTheTopItem, changeItemSequence, changePassword, updateMasterContent, updateSubscribeContent, editMainContent, updateMustRead,//update
     deleteItem
 } = require('./api')
 
@@ -40,6 +40,8 @@ router.post('/addvideo', addVideo);
 router.post('/updatevideo', updateVideo);
 router.post('/addnotice', addNotice);
 router.post('/updatenotice', updateNotice);
+router.post('/addmustread', addMustRead);
+router.post('/updatemustread', updateMustRead);
 router.post('/addissuecategory', upload.single('content'), addIssueCategory);
 router.post('/updateissuecategory', upload.single('content'), updateIssueCategory);
 router.post('/addfeaturecategory', upload.single('content'), addFeatureCategory);
@@ -59,7 +61,6 @@ router.get('/items', getItems);
 router.get('/item', getItem);
 router.get('/gethomecontent', getHomeContent);
 router.post('/updatesetting', upload.single('master'), updateSetting);
-router.post('/addsetting', upload.single('master'), addSetting);
 router.post('/editmaincontent', upload.fields([{ name: 'main' }, { name: 'recommendation_banner' }, { name: 'banner' }]), editMainContent);
 router.get('/getmaincontent', getMainContent);
 router.get('/setting', getSetting);
