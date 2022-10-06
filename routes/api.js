@@ -1698,14 +1698,14 @@ const updateMasterContent = (req, res) => {
 const addSubscribeContent = (req, res) => {
     try {
         let { name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
-            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note } = req.body;
+            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_list, capital_change_text, capital_change_note, investment_indicator_note, etc_note } = req.body;
         let major_bussiness_img = "";
         let investment_indicator_img = "";
         let capital_change_img = "";
         let columns = ['name', 'base_price', 'capture_date', 'score', 'weather', 'master_pk', 'main_note', 'take_list', 'operating_profit_list', 'company_overview_note', 'investment_point_list', 'investment_point_note',
-            'major_bussiness_list', 'major_bussiness_text', 'major_bussiness_note', 'share_note', 'capital_change_text', 'capital_change_note', 'investment_indicator_note', 'etc_note'];
+            'major_bussiness_list', 'major_bussiness_text', 'major_bussiness_note', 'share_list', 'capital_change_text', 'capital_change_note', 'investment_indicator_note', 'etc_note'];
         let zColumn = [name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
-            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note];
+            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_list, capital_change_text, capital_change_note, investment_indicator_note, etc_note];
         let inputs = '(?';
         for (var i = 1; i < columns.length; i++) {
             inputs += ', ?';
@@ -1756,14 +1756,14 @@ const updateSubscribeContent = (req, res) => {
     try {
         let sql = "";
         let { name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
-            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note, pk } = req.body;
+            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_list, capital_change_text, capital_change_note, investment_indicator_note, etc_note, pk } = req.body;
         let major_bussiness_img = "";
         let investment_indicator_img = "";
         let capital_change_img = "";
         let columns = ['name', 'base_price', 'capture_date', 'score', 'weather', 'master_pk', 'main_note', 'take_list', 'operating_profit_list', 'company_overview_note', 'investment_point_list', 'investment_point_note',
-            'major_bussiness_list', 'major_bussiness_text', 'major_bussiness_note', 'share_note', 'capital_change_text', 'capital_change_note', 'investment_indicator_note', 'etc_note'];
+            'major_bussiness_list', 'major_bussiness_text', 'major_bussiness_note', 'share_list', 'capital_change_text', 'capital_change_note', 'investment_indicator_note', 'etc_note'];
         let zColumn = [name, base_price, capture_date, score, weather, master_pk, main_note, take_list, operating_profit_list, company_overview_note, investment_point_list, investment_point_note,
-            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_note, capital_change_text, capital_change_note, investment_indicator_note, etc_note];
+            major_bussiness_list, major_bussiness_text, major_bussiness_note, share_list, capital_change_text, capital_change_note, investment_indicator_note, etc_note];
 
         columns = columns.join("=?,");
         columns += '=?'
