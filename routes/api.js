@@ -728,6 +728,7 @@ const getUserStatistics = (req, res) => {
 const addMaster = (req, res) => {
     try {
         const name = req.body.name ?? "";
+        const yield = req.body.yield ?? 0;
 
         const masterImg = '/image/' + req.file.fieldname + '/' + req.file.filename;
         const backgroundColor = req.body.backgroundColor;
@@ -736,7 +737,7 @@ const addMaster = (req, res) => {
         const style = req.body.style;
         const sectorList = req.body.sectorList;
         //중복 체크 
-        db.query("INSERT INTO master_table (name, profile_img, background_color, motto, investment_principle, investment_style, sector_list) VALUES (?, ?, ?, ?, ?, ?, ?)", [name, masterImg, backgroundColor, motto, principle, style, sectorList], async (err, result) => {
+        db.query("INSERT INTO master_table (name, yield, profile_img, background_color, motto, investment_principle, investment_style, sector_list) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [name, masterImg, backgroundColor, motto, principle, style, sectorList], async (err, result) => {
 
             if (err) {
                 console.log(err)
@@ -762,6 +763,7 @@ const addMaster = (req, res) => {
 const updateMaster = (req, res) => {
     try {
         const name = req.body.name ?? "";
+        const yield = req.body.yield ?? 0;
         const pk = req.body.pk;
         const backgroundColor = req.body.backgroundColor;
         const motto = req.body.motto;
@@ -769,8 +771,8 @@ const updateMaster = (req, res) => {
         const style = req.body.style;
         const sectorList = req.body.sectorList;
         let masterImg = "";
-        let columns = "name=?, background_color=?, motto=?, investment_principle=?, investment_style=?, sector_list=?";
-        let zColumn = [name, backgroundColor, motto, principle, style, sectorList];
+        let columns = "name=?, yield=?, background_color=?, motto=?, investment_principle=?, investment_style=?, sector_list=?";
+        let zColumn = [name, yield, backgroundColor, motto, principle, style, sectorList];
         if (req.file) {
             masterImg = '/image/' + req.file.fieldname + '/' + req.file.filename;
             columns += ",profile_img=?";
@@ -1599,7 +1601,6 @@ const getUserSubscribeMasters = (pk) => {
     return new Promise((resolve, reject) => {
         db.query("SELECT * FROM user_master_connect_table WHERE user_pk=?", [pk], (err, result, fields) => {
             if (err) {
-                console.log(sql)
                 console.log(err)
                 reject({
                     code: -200,
@@ -1650,7 +1651,6 @@ const getMasterContents = async (req, res) => {
             orderStr = ` ORDER BY ${table}_table.${order} ${desc ? 'DESC' : 'ASC'}`
         }
         sql = `${selectStr} ${whereStr} ${orderStr}`;
-        console.log(sql)
         db.query(sql, (err, result) => {
             if (err) {
                 console.log(err)
@@ -1995,13 +1995,13 @@ const updateSetting = (req, res) => {
         if (req.file) {
             columns += "main_img=?"
             zColumn.push('/image/' + req.file.fieldname + '/' + req.file.filename)
-        }else{
-            if(category=='main_img'){
+        } else {
+            if (category == 'main_img') {
                 return response(req, res, 100, "success", [])
-            }else if(category=='introduce'){
+            } else if (category == 'introduce') {
                 columns += "introduce=?"
                 zColumn.push(introduce)
-            }else if(category=='how_to_use'){
+            } else if (category == 'how_to_use') {
                 columns += "how_to_use=?"
                 zColumn.push(howToUse)
             }
