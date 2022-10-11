@@ -45,21 +45,18 @@ router.get('/', (req, res) => {
 
 const onSignUp = async (req, res) => {
     try {
-
+        console.log(req.body)
         //logRequest(req)
         const id = req.body.id ?? "";
         const pw = req.body.pw ?? "";
-        const name = req.body.name ?? "";
-        const nickname = req.body.nickname ?? "";
-        const phone = req.body.phone ?? "";
+        const email = req.body.email ?? "";
         const user_level = req.body.user_level ?? 0;
-        const type_num = req.body.type_num ?? 0;
-        const consulting_note = req.body.consulting_note;
         //중복 체크 
         let sql = "SELECT * FROM user_table WHERE id=?"
 
         db.query(sql, [id], (err, result) => {
-            if (result.length > 0)
+            let users = result??[];
+            if (users.length > 0)
                 response(req, res, -200, "ID가 중복됩니다.", [])
             else {
                 crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
@@ -71,23 +68,17 @@ const onSignUp = async (req, res) => {
                         response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
                     }
 
-                    sql = 'INSERT INTO user_table (id, pw, name, nickname , phone, user_level, type, consulting_note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-                    await db.query(sql, [id, hash, name, nickname, phone, user_level, type_num, consulting_note], async (err, result) => {
+                    sql = 'INSERT INTO user_table (id, pw, email, user_level) VALUES (?, ?, ?, ?)'
+                    await db.query(sql, [id, hash, email, user_level], async (err, result) => {
 
                         if (err) {
                             console.log(err)
                             response(req, res, -200, "회원 추가 실패", [])
                         }
                         else {
-                            await db.query("UPDATE user_table SET sort=? WHERE pk=?", [result?.insertId, result?.insertId], (err, resultup) => {
-                                if (err) {
-                                    console.log(err)
-                                    response(req, res, -200, "회원 추가 실패", [])
-                                }
-                                else {
-                                    response(req, res, 200, "회원 추가 성공", [])
-                                }
-                            })
+
+                            response(req, res, 200, "회원 추가 성공", [])
+
                         }
                     })
                 })
@@ -113,15 +104,16 @@ const onLoginById = async (req, res) => {
                     await crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
                         // bcrypt.hash(pw, salt, async (err, hash) => {
                         let hash = decoded.toString('base64');
+                        console.log(pw)
+                        console.log(hash)
+                        console.log(result1[0])
                         if (hash == result1[0].pw) {
                             try {
                                 const token = jwt.sign({
                                     pk: result1[0].pk,
-                                    nickname: result1[0].nickname,
                                     id: result1[0].id,
                                     user_level: result1[0].user_level,
-                                    phone: result1[0].phone,
-                                    profile_img: result1[0].profile_img
+                                    email: result1[0].email,
                                 },
                                     jwtSecret,
                                     {
@@ -129,23 +121,19 @@ const onLoginById = async (req, res) => {
                                         issuer: 'fori',
                                     });
                                 res.cookie("token", token, { httpOnly: true, maxAge: 60 * 60 * 1000 * 10 });
-                                db.query('UPDATE user_table SET last_login=? WHERE pk=?', [returnMoment(), result1[0].pk], (err, result) => {
-                                    if (err) {
-                                        console.log(err)
-                                        return response(req, res, -200, "서버 에러 발생", [])
-                                    }
-                                })
-                                return response(req, res, 200, result1[0].nickname + ' 님 환영합니다.', result1[0]);
+                                return response(req, res, 200, '환영합니다.', result1[0]);
                             } catch (e) {
                                 console.log(e)
                                 return response(req, res, -200, "서버 에러 발생", [])
                             }
                         } else {
+                            console.log(1)
                             return response(req, res, -100, "없는 회원입니다.", [])
 
                         }
                     })
                 } else {
+                    console.log(2)
                     return response(req, res, -100, "없는 회원입니다.", [])
                 }
             }
@@ -168,11 +156,9 @@ const onLoginBySns = (req, res) => {
                 if (result.length > 0) {//기존유저
                     let token = jwt.sign({
                         pk: result[0].pk,
-                        nickname: result[0].nickname,
                         id: result[0].id,
                         user_level: result[0].user_level,
-                        phone: result[0].phone,
-                        profile_img: result[0].profile_img
+                        email: result[0].email
                     },
                         jwtSecret,
                         {
@@ -201,11 +187,9 @@ const onLoginBySns = (req, res) => {
                                 else {
                                     let token = jwt.sign({
                                         pk: result2?.insertId,
-                                        nickname: nickname,
                                         id: id,
                                         user_level: user_level,
-                                        phone: phone,
-                                        profile_img: profile_img
+                                        email: email
                                     },
                                         jwtSecret,
                                         {
@@ -594,16 +578,14 @@ const getUserToken = (req, res) => {
         if (decode) {
             let id = decode.id;
             let pk = decode.pk;
-            let nickname = decode.nickname;
-            let phone = decode.phone;
+            let email = decode.email;
             let user_level = decode.user_level;
-            let profile_img = decode.profile_img;
-            res.send({ id, pk, nickname, phone, user_level, profile_img })
+            res.send({ id, pk, user_level, email })
         }
         else {
             res.send({
                 pk: -1,
-                level: -1
+                user_level: -1
             })
         }
     } catch (e) {
