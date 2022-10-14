@@ -3,9 +3,9 @@ const router = express.Router();
 const { upload } = require('../config/multerConfig')
 const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
-    findIdByPhone, findAuthByIdAndPhone, getUserContent, //select
+    findIdByPhone, findAuthByIdAndPhone, getUserContent, getTodoList, getToDoListStatistics,//select
     onSignUp, addTodo,  //insert 
-    changePassword,//update
+    changePassword, changeStatus,//update
     getAddressByText//place
 } = require('./api')
 
@@ -25,5 +25,8 @@ router.post('/logout', onLogout);
 router.get('/auth', getUserToken);
 router.post('/getaddressbytext', getAddressByText);
 router.post('/addtodo', addTodo);
+router.post('/gettodolist', getTodoList);
+router.post('/changestatus', changeStatus);
+router.post('/gettodoliststatistics', getToDoListStatistics);
 
 module.exports = router;

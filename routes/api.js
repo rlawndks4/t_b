@@ -45,7 +45,6 @@ router.get('/', (req, res) => {
 
 const onSignUp = async (req, res) => {
     try {
-        console.log(req.body)
         //logRequest(req)
         const id = req.body.id ?? "";
         const pw = req.body.pw ?? "";
@@ -93,7 +92,6 @@ const onSignUp = async (req, res) => {
 }
 const onLoginById = async (req, res) => {
     try {
-        console.log(req.body)
         let { id, pw } = req.body;
         db.query('SELECT * FROM user_table WHERE id=?', [id], async (err, result1) => {
             if (err) {
@@ -143,7 +141,6 @@ const onLoginById = async (req, res) => {
 }
 const onLoginBySns = (req, res) => {
     try {
-        console.log(req.body)
         let { id, typeNum, name, nickname, phone, user_level, profile_img } = req.body;
         db.query("SELECT * FROM user_table WHERE id=? AND type=?", [id, typeNum], async (err, result) => {
             if (err) {
@@ -559,8 +556,16 @@ const onLogout = (req, res) => {
 }
 const addTodo = (req, res) => {
     try {
-        let { title, select_date, start_time, end_time, tag, minute_ago, place, lat, lng, user_pk } = req.body;
-        console.log(req.body);
+        let { title, category, select_date, start_time, end_time, tag, minute_ago, place, lat, lng, user_pk } = req.body;
+        let sql = "INSERT INTO todo_table (title, category, select_date, start_time, end_time, tag, minute_ago, place, lat, lng, user_pk) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        db.query(sql, [title, category, select_date, start_time, end_time, tag, minute_ago, place, lat, lng, user_pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", [])
+            }
+        })
     } catch (e) {
         console.log(e)
         return response(req, res, -200, "서버 에러 발생", [])
@@ -568,16 +573,57 @@ const addTodo = (req, res) => {
 }
 const getTodoList = (req, res) => {
     try {
-        let { date, user_pk } = req.body;
+        let { select_date, user_pk } = req.body;
+        db.query("SELECT * FROM todo_table WHERE select_date=? AND user_pk=? ORDER BY date ASC", [select_date, user_pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", result)
+            }
+        })
     } catch (e) {
         console.log(e)
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
-const toDoListStatistics = (req, res) => {
+const changeStatus = (req, res) => {
     try {
-        let { date, type } = req.body;
+        let { pk, status } = req.body;
+        db.query("UPDATE todo_table SET status=? WHERE pk=?", [status, pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", result)
+            }
+        })
 
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const getToDoListStatistics = async (req, res) => {
+    try {
+        let { list, user_pk } = req.body;
+        let day_list = "";
+        for (var i = 0; i < list.length; i++) {
+            if (i == 0) {
+                day_list += `'${list[i]}'`;
+            } else {
+                day_list += `,'${list[i]}'`;
+            }
+        }
+        let sql = `SELECT * FROM todo_table WHERE user_pk=${user_pk} AND select_date IN(${day_list})`;
+        await db.query(sql, (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "success", result)
+            }
+        })
     } catch (e) {
         console.log(e)
         return response(req, res, -200, "서버 에러 발생", [])
@@ -611,7 +657,6 @@ const getAddressByText = async (req, res) => {
                     address: coord.data.addresses[i].jibunAddress
                 }
             }
-            console.log(result)
             return response(req, res, 100, "success", result);
         }
     } catch (e) {
@@ -622,8 +667,8 @@ const getAddressByText = async (req, res) => {
 
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
-    findIdByPhone, findAuthByIdAndPhone, getUserContent, //select
+    findIdByPhone, findAuthByIdAndPhone, getUserContent, getTodoList, getToDoListStatistics,//select
     onSignUp, addTodo,  //insert 
-    changePassword,//update
+    changePassword, changeStatus,//update
     getAddressByText//place
 };
