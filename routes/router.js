@@ -4,7 +4,7 @@ const { upload } = require('../config/multerConfig')
 const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
     findIdByPhone, findAuthByIdAndPhone, getUserContent, //select
-    onSignUp,  //insert 
+    onSignUp, addTodo,  //insert 
     changePassword,//update
     getAddressByText//place
 } = require('./api')
@@ -24,5 +24,6 @@ router.post('/loginbysns', onLoginBySns);
 router.post('/logout', onLogout);
 router.get('/auth', getUserToken);
 router.post('/getaddressbytext', getAddressByText);
+router.post('/addtodo', addTodo);
 
 module.exports = router;
