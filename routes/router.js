@@ -6,6 +6,7 @@ const {
     findIdByPhone, findAuthByIdAndPhone, getUserContent, //select
     onSignUp,  //insert 
     changePassword,//update
+    getAddressByText//place
 } = require('./api')
 
 router.post('/editmyinfo', editMyInfo);
@@ -22,5 +23,6 @@ router.post('/loginbyid', onLoginById);
 router.post('/loginbysns', onLoginBySns);
 router.post('/logout', onLogout);
 router.get('/auth', getUserToken);
+router.post('/getaddressbytext', getAddressByText);
 
 module.exports = router;

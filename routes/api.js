@@ -29,7 +29,7 @@ const salt = "435f5ef2ffb83a632c843926b35ae7855bc2520021a73a043db41670bfaeb722"
 const saltRounds = 10
 const pwBytes = 64
 const jwtSecret = "djfudnsqlalfKeyFmfRkwu"
-
+const request = require('request')
 const geolocation = require('geolocation')
 const kakaoOpt = {
     clientId: '4a8d167fa07331905094e19aafb2dc47',
@@ -575,9 +575,49 @@ const toDoListStatistics = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const getAddressByText = async (req, res) => {
+    try {
+        let { text } = req.body;
+        let client_id = 't4ukv57wps';
+        let client_secret = 'gjZDDuyAdiOcTSYDXnNUoLD5soB98Cp1ZoKj4b4O';
+        let api_url = 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode'; // json
+        
+        const coord = await axios
+          .get(`${api_url}`, {
+            params: {
+              query:text,
+            },
+            headers: {
+              "X-NCP-APIGW-API-KEY-ID": `${client_id}`,
+              "X-NCP-APIGW-API-KEY": `${client_secret}`,
+            },
+          })
+          if(!coord.data.addresses){
+            alert(`${text} 에 해당되는 좌표가 없습니다.`)
+          }
+          else{
+            console.log(coord.data.addresses)
+            let arr = []
+            for(var i =0;i<coord.data.addresses.length;i++){
+                arr[i] = {
+                    lng:coord.data.addresses[i].x,
+                    lat:coord.data.addresses[i].y,
+                    road_address:coord.data.addresses[i].roadAddress,
+                    address:coord.data.addresses[i].jibunAddress
+                }
+            }
+            console.log(arr)
+          }
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
     findIdByPhone, findAuthByIdAndPhone, getUserContent, //select
     onSignUp,  //insert 
     changePassword,//update
+    getAddressByText//place
 };
