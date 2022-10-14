@@ -632,8 +632,8 @@ const getToDoListStatistics = async (req, res) => {
 const getAddressByText = async (req, res) => {
     try {
         let { text } = req.body;
-        let client_id = 't4ukv57wps';
-        let client_secret = 'gjZDDuyAdiOcTSYDXnNUoLD5soB98Cp1ZoKj4b4O';
+        let client_id = 'pmfxkd4ept';
+        let client_secret = 't2HIUfZOkme7FF0JdIxfdwYI92cl2R5GKpMBa7Nj';
         let api_url = 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode'; // json
 
         const coord = await axios.get(`${api_url}`, {
