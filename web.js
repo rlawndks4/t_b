@@ -50,9 +50,9 @@ if (is_test) {
 
 } else {
         const options = { // letsencrypt로 받은 인증서 경로를 입력해 줍니다.
-                ca: fs.readFileSync("/etc/letsencrypt/live/masterpick.co.kr/fullchain.pem"),
-                key: fs.readFileSync("/etc/letsencrypt/live/masterpick.co.kr/privkey.pem"),
-                cert: fs.readFileSync("/etc/letsencrypt/live/masterpick.co.kr/cert.pem")
+                ca: fs.readFileSync("/etc/letsencrypt/live/todoornot.site/fullchain.pem"),
+                key: fs.readFileSync("/etc/letsencrypt/live/todoornot.site/privkey.pem"),
+                cert: fs.readFileSync("/etc/letsencrypt/live/todoornot.site/cert.pem")
         };
         https.createServer(options, app).listen(HTTPS_PORT, console.log("Server on " + HTTPS_PORT));
 
