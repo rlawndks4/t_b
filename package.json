@@ -26,6 +26,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
     "node-static": "^0.7.11",
+    "nodemailer": "^6.8.0",
     "nodemon": "^2.0.12",
     "params-parser": "0.0.3",
     "passport": "^0.4.1",

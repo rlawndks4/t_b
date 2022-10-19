@@ -41,6 +41,7 @@ router.get('/', (req, res) => {
 });
 
 
+const nodemailer = require('nodemailer');
 
 
 const onSignUp = async (req, res) => {
@@ -153,7 +154,7 @@ const onLoginBySns = (req, res) => {
                         pk: result[0].pk,
                         id: result[0].id,
                         user_level: result[0].user_level,
-                        email: result[0].email
+                        email: result[0].email,
                     },
                         jwtSecret,
                         {
@@ -246,7 +247,8 @@ const getUserContent = (req, res) => {
 
 const editMyInfo = (req, res) => {
     try {
-        let { pw, nickname, newPw, phone, id } = req.body;
+        const decode = checkLevel(req.cookies.token, 0)
+        let { pw, email } = req.body;
         crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
             // bcrypt.hash(pw, salt, async (err, hash) => {
             let hash = decoded.toString('base64')
@@ -255,73 +257,12 @@ const editMyInfo = (req, res) => {
                 console.log(err)
                 response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
             }
-
-            await db.query("SELECT * FROM user_table WHERE id=? AND pw=?", [id, hash], async (err, result) => {
+            await db.query("UPDATE user_table SET pw=?, email=? WHERE id=?", [hash, email, decode.id], (err, result) => {
                 if (err) {
-                    console.log(err);
-                    response(req, res, -100, "서버 에러 발생", [])
+                    console.log(err)
+                    return response(req, res, -200, "서버 에러 발생", [])
                 } else {
-                    if (result.length > 0) {
-                        if (newPw) {
-                            await crypto.pbkdf2(newPw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
-                                // bcrypt.hash(pw, salt, async (err, hash) => {
-                                let new_hash = decoded.toString('base64')
-                                if (err) {
-                                    console.log(err)
-                                    response(req, res, -200, "새 비밀번호 암호화 도중 에러 발생", [])
-                                }
-                                await db.query("UPDATE user_table SET pw=? WHERE id=?", [new_hash, id], (err, result) => {
-                                    if (err) {
-                                        console.log(err)
-                                        return response(req, res, -100, "서버 에러 발생", []);
-                                    } else {
-                                        return response(req, res, 100, "success", []);
-                                    }
-                                })
-                            })
-                        } else if (nickname || phone) {
-                            let selectSql = "";
-                            let updateSql = "";
-                            let zColumn = [];
-                            if (nickname) {
-                                selectSql = "SELECT * FROM user_table WHERE nickname=? AND id!=?"
-                                updateSql = "UPDATE user_table SET nickname=? WHERE id=?";
-                                zColumn.push(nickname);
-                            } else if (phone) {
-                                selectSql = "SELECT * FROM user_table WHERE phone=? AND id!=?"
-                                updateSql = "UPDATE user_table SET phone=? WHERE id=?";
-                                zColumn.push(phone);
-                            }
-                            zColumn.push(id);
-                            await db.query(selectSql, zColumn, async (err, result1) => {
-                                if (err) {
-                                    console.log(err)
-                                    return response(req, res, -100, "서버 에러 발생", []);
-                                } else {
-                                    if (result1.length > 0) {
-                                        let message = "";
-                                        if (nickname) {
-                                            message = "이미 사용중인 닉네임 입니다.";
-                                        } else if (phone) {
-                                            message = "이미 사용중인 전화번호 입니다.";
-                                        }
-                                        return response(req, res, -50, message, []);
-                                    } else {
-                                        await db.query(updateSql, zColumn, (err, result2) => {
-                                            if (err) {
-                                                console.log(err)
-                                                return response(req, res, -100, "서버 에러 발생", []);
-                                            } else {
-                                                return response(req, res, 100, "success", []);
-                                            }
-                                        })
-                                    }
-                                }
-                            })
-                        }
-                    } else {
-                        response(req, res, -50, "비밀번호가 일치하지 않습니다.", [])
-                    }
+                    return response(req, res, 100, "성공적으로 저장되었습니다. 다시 로그인 해주세요.", [])
                 }
             })
         })
@@ -385,8 +326,49 @@ const kakaoCallBack = (req, res) => {
         response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const getMyInfo = (req, res) => {
+    try {
+        const decode = checkLevel(req.cookies.token, 0)
+        db.query("SELECT * FROM user_table WHERE pk=?", [decode.pk], (err, result) => {
+            if (err) {
+                console.log(err);
+                response(req, res, -100, "서버 에러 발생", [])
+            } else {
+                if (result?.length > 0) {
+                    response(req, res, 100, "success", result[0])
 
+                } else {
+                    response(req, res, 100, "없는 유저 입니다.", [])
+                }
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const updateCheckIsMonday = (req, res) => {
+    try {
+        let check = req.body.check;
+        const decode = checkLevel(req.cookies.token, 0)
+        db.query("UPDATE user_table SET is_monday=? WHERE pk=?", [check, decode.pk], (err, result) => {
+            if (err) {
+                console.log(err);
+                response(req, res, -100, "서버 에러 발생", [])
+            } else {
+                if (result?.length > 0) {
+                    response(req, res, 100, "success", result[0])
 
+                } else {
+                    response(req, res, 100, "없는 유저 입니다.", [])
+                }
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 
 const sendAligoSms = ({ receivers, message }) => {
     return axios.post('https://apis.aligo.in/send/', null, {
@@ -433,17 +415,82 @@ const findIdByPhone = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
-const findAuthByIdAndPhone = (req, res) => {
+const findAuthByNameAndEmail = (req, res) => {
     try {
-        const id = req.body.id;
-        const phone = req.body.phone;
-        db.query("SELECT * FROM user_table WHERE id=? AND phone=?", [id, phone], (err, result) => {
+        const name = req.body.name;
+        const email = req.body.email;
+        console.log(req.body)
+        db.query("SELECT * FROM user_table WHERE name=? AND email=?", [name, email], (err, result) => {
             if (err) {
                 console.log(err)
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
                 if (result.length > 0) {
                     return response(req, res, 100, "success", result[0]);
+                } else {
+                    return response(req, res, -50, "등록되지 않은 회원입니다.", []);
+                }
+            }
+        })
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const findPwByNameAndId = (req, res) => {
+    try {
+        const name = req.body.name;
+        const id = req.body.id;
+        db.query("SELECT * FROM user_table WHERE name=? AND id=?", [name, id], async (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                if (result.length > 0) {
+                    let pw = "";
+                    for (var i = 0; i < 6; i++) {
+                        pw += Math.floor(Math.random() * 10).toString();
+                    }
+                    await crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
+                        // bcrypt.hash(pw, salt, async (err, hash) => {
+                        if (err) {
+                            return response(req, res, -200, "서버 에러 발생", [])
+                        }
+                        let hash = decoded.toString('base64');
+                        await db.query("UPDATE user_table SET pw=? WHERE id=?", [hash, id], (err, result) => {
+                            if (err) {
+                                console.log(err)
+                                return response(req, res, -100, "fail", []);
+                            } else {
+                                return response(req, res, 100, "임시 비밀번호가 메일로 전송되었습니다.", []);
+                            }
+                        })
+                    })
+                    // 메일발송 함수
+                    const transporter = nodemailer.createTransport({
+                        service: 'naver',
+                        host: 'smtp.naver.com',  // SMTP 서버명
+                        port: 465,  // SMTP 포트
+                        auth: {
+                            user: process.env.NODEMAILER_USER,  // 네이버 아이디
+                            pass: process.env.NODEMAILER_PASS,  // 네이버 비밀번호
+                        },
+                    });
+                    const mailOptions = {
+                        from: process.env.NODEMAILER_USER,  // 네이버 아이디
+                        to: result[0].email,  // 수신자 아이디
+                        subject: '[Todo or Not] 임시 비밀번호 설정',
+                        html: `${name}님의 임시 비밀번호는 '${pw}' 입니다.`,
+                    };
+
+                    await transporter.sendMail(mailOptions, function (err, info) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log('Successfully Send Email.', info.response);
+                            transporter.close()
+                        }
+                    });
                 } else {
                     return response(req, res, -50, "등록되지 않은 회원입니다.", []);
                 }
@@ -488,6 +535,37 @@ const checkExistNickname = (req, res) => {
                 } else {
                     return response(req, res, 100, "사용가능한 닉네임입니다.", []);
                 }
+            }
+        })
+
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const checkPw = (req, res) => {
+    try {
+        let pw = req.body.pw;
+        const decode = checkLevel(req.cookies.token, 0)
+        db.query("SELECT * FROM user_table WHERE id=?", [decode.id], async (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                await crypto.pbkdf2(pw, salt, saltRounds, pwBytes, 'sha512', async (err, decoded) => {
+                    // bcrypt.hash(pw, salt, async (err, hash) => {
+                    let hash = decoded.toString('base64')
+
+                    if (err) {
+                        console.log(err)
+                        response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
+                    }
+                    if (hash == result[0].pw) {
+                        return response(req, res, 100, "success", [])
+                    } else {
+                        return response(req, res, -50, "비밀번호가 일치하지 않습니다.", [])
+                    }
+                })
             }
         })
 
@@ -565,6 +643,23 @@ const addTodo = (req, res) => {
                 return response(req, res, -200, "서버 에러 발생", [])
             } else {
                 return response(req, res, 100, "success", [])
+            }
+        })
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
+const updateTodo = (req, res) => {
+    try {
+        let { title, category, select_date, start_time, end_time, tag, minute_ago, place, lat, lng, pk } = req.body;
+        let sql = "UPDATE todo_table SET title=?, category=?, select_date=?, start_time=?, end_time=?, tag=?, minute_ago=?, place=?, lat=?, lng=? WHERE pk=?";
+        db.query(sql, [title, category, select_date, start_time, end_time, tag, minute_ago, place, lat, lng, pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "성공적으로 저장되었습니다.", [])
             }
         })
     } catch (e) {
@@ -665,11 +760,27 @@ const getAddressByText = async (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
-
+const deleteToto = (req, res) => {
+    try {
+        let { pk } = req.params;
+        db.query("DELETE FROM todo_table WHERE pk=?", [pk], (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                return response(req, res, 100, "성공적으로 삭제 되었습니다.", [])
+            }
+        })
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 module.exports = {
-    onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
-    findIdByPhone, findAuthByIdAndPhone, getUserContent, getTodoList, getToDoListStatistics,//select
+    onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, checkPw, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
+    findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo,//select
     onSignUp, addTodo,  //insert 
-    changePassword, changeStatus,//update
-    getAddressByText//place
+    changePassword, changeStatus, updateTodo, updateCheckIsMonday,//update
+    getAddressByText,//place
+    deleteToto
 };
