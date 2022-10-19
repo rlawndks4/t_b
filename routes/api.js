@@ -49,6 +49,7 @@ const onSignUp = async (req, res) => {
         const id = req.body.id ?? "";
         const pw = req.body.pw ?? "";
         const email = req.body.email ?? "";
+        const name = req.body.name ?? "";
         const user_level = req.body.user_level ?? 0;
         //중복 체크 
         let sql = "SELECT * FROM user_table WHERE id=?"
@@ -67,8 +68,8 @@ const onSignUp = async (req, res) => {
                         response(req, res, -200, "비밀번호 암호화 도중 에러 발생", [])
                     }
 
-                    sql = 'INSERT INTO user_table (id, pw, email, user_level) VALUES (?, ?, ?, ?)'
-                    await db.query(sql, [id, hash, email, user_level], async (err, result) => {
+                    sql = 'INSERT INTO user_table (id, pw, email, name, user_level) VALUES (?, ?, ?, ?, ?)'
+                    await db.query(sql, [id, hash, email, name, user_level], async (err, result) => {
 
                         if (err) {
                             console.log(err)
