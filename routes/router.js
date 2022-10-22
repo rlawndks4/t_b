@@ -5,7 +5,7 @@ const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, checkPw, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
     findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo,//select
     onSignUp, addTodo,  //insert 
-    changePassword, changeStatus, updateTodo, updateCheckIsMonday,//update
+    changePassword, changeStatus, updateTodo, updateCheckIsMonday, checkLocation,//update
     getAddressByText,//place
     deleteToto
 } = require('./api')
@@ -34,6 +34,7 @@ router.post('/updatetodo', updateTodo);
 router.post('/gettodolist', getTodoList);
 router.post('/changestatus', changeStatus);
 router.post('/gettodoliststatistics', getToDoListStatistics);
+router.post('/checklocation', checkLocation);
 router.delete('/deletetodo/:pk', deleteToto);
 
 module.exports = router;

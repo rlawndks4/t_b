@@ -776,11 +776,44 @@ const deleteToto = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const checkLocation = (req, res) => {
+    try {
+        const decode = checkLevel(req.cookies.token, 0)
+        let { lat, lng } = req.body;
+        db.query("SELECT *, (6371 * acos (cos ( radians(?) )* cos( radians( lat ) )* cos( radians( lng ) - radians(?) )+ sin ( radians(?) )* sin( radians( lat ) ))) AS dis FROM todo_table WHERE user_pk=? AND status=0", [lat, lng, lat, decode.pk], async (err, result) => {
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                let time = returnMoment().substring(0, 16);
+                let ans = [0];
+                for (var i = 0; i < result.length; i++) {
+                    if (time >= `${result[i].select_date} ${result[i].start_time}` && time <= `${result[i].select_date} ${result[i].end_time}` && dis < 0.5) {
+                        ans.push(result[i].pk);
+                    }
+                }
+                ans = ans.join();
+                await db.query(`UPDATE todo_table SET status=1 WHERE pk IN (${ans})`, (err, result) => {
+                    if (err) {
+                        console.log(err)
+                        return response(req, res, -200, "서버 에러 발생", [])
+                    } else {
+                        return response(req, res, 100, "success", [])
+                    }
+                })
+                return response(req, res, 100, "성공적으로 삭제 되었습니다.", [])
+            }
+        })
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, checkPw, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
     findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo,//select
     onSignUp, addTodo,  //insert 
-    changePassword, changeStatus, updateTodo, updateCheckIsMonday,//update
+    changePassword, changeStatus, updateTodo, updateCheckIsMonday, checkLocation,//update
     getAddressByText,//place
     deleteToto
 };
