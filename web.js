@@ -60,13 +60,7 @@ if (is_test) {
         https.createServer(options, app).listen(HTTPS_PORT, console.log("Server on " + HTTPS_PORT));
 
 }
-
-schedule.scheduleJob('0 0/1 * * * *', async function () {
-        console.log(returnMoment());
-        let date = returnMoment().substring(0, 10);
-        let dayOfWeek = new Date(date).getDay()
-        let result = await dbQueryList(`SELECT todo_table.*, user_table.*  FROM todo_table LEFT JOIN user_table ON todo_table.user_pk=user_table.pk WHERE DATE_SUB(CONCAT(select_date, ' ', start_time), INTERVAL minute_ago MINUTE)=? `, [returnMoment()]);
-        let list = result?.result ?? [];
+const sendEmail = async (list) => {
         for (var i = 0; i < list.length; i++) {
                 let name = list[i]?.name;
                 let note = `${name}님\n`;
@@ -100,6 +94,15 @@ schedule.scheduleJob('0 0/1 * * * *', async function () {
                         }
                 });
         }
+}
+schedule.scheduleJob('0 0/1 * * * *', async function () {
+        console.log(returnMoment());
+        let date = returnMoment().substring(0, 10);
+        let dayOfWeek = new Date(date).getDay()
+        let result = await dbQueryList(`SELECT todo_table.*, user_table.*  FROM todo_table LEFT JOIN user_table ON todo_table.user_pk=user_table.pk WHERE DATE_SUB(CONCAT(select_date, ' ', start_time), INTERVAL minute_ago MINUTE)=? `, [returnMoment()]);
+        let list = result?.result ?? [];
+        sendEmail(list);
+
 })
 
 // Default route for server status
