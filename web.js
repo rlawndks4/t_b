@@ -62,6 +62,7 @@ if (is_test) {
 }
 const sendEmail = async (list) => {
         for (var i = 0; i < list.length; i++) {
+                console.log(list[i]);
                 let name = list[i]?.name;
                 let note = `${name}님\n`;
                 if (list[i].lat > 0) {
@@ -84,15 +85,23 @@ const sendEmail = async (list) => {
                         subject: title,
                         html: note,
                 };
-
-                await transporter.sendMail(mailOptions, function (err, info) {
-                        if (err) {
-                                console.log(err);
-                        } else {
-                                console.log('Successfully Send Email.', info.response);
-                                transporter.close()
-                        }
-                });
+                await new Promise((resolve, reject) => {
+                        transporter.sendMail(mailOptions, function (err, info) {
+                                if (err) {
+                                        console.log(err);
+                                        reject({
+                                                code: -200
+                                        })
+                                } else {
+                                        console.log('Successfully Send Email.', info.response);
+                                        transporter.close();
+                                        resolve({
+                                                code: 200
+                                        })
+                                        
+                                }
+                        }); 
+                })
         }
 }
 schedule.scheduleJob('0 0/1 * * * *', async function () {
