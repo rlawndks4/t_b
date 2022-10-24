@@ -68,7 +68,7 @@ const sendEmail = async (list) => {
                 if (list[i].lat > 0) {
                         note += `${list[i]?.place}에서`
                 }
-                note += `${list[i]?.start_date} 부터 ${list[i]?.end_date} 까지 ${list[i]?.tag} 스케줄이 있습니다.`
+                note += `${list[i]?.start_time} 부터 ${list[i]?.end_time} 까지 ${list[i]?.tag} 스케줄이 있습니다.`
                 let title = `${name}님 알림입니다.`;
                 const transporter = nodemailer.createTransport({
                         service: 'naver',
