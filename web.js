@@ -85,7 +85,7 @@ const sendEmail = async (list) => {
                         html: note,
                 };
 
-                transporter.sendMail(mailOptions, function (err, info) {
+                await transporter.sendMail(mailOptions, function (err, info) {
                         if (err) {
                                 console.log(err);
                         } else {
@@ -101,7 +101,7 @@ schedule.scheduleJob('0 0/1 * * * *', async function () {
         let dayOfWeek = new Date(date).getDay()
         let result = await dbQueryList(`SELECT todo_table.*, user_table.*  FROM todo_table LEFT JOIN user_table ON todo_table.user_pk=user_table.pk WHERE DATE_SUB(CONCAT(select_date, ' ', start_time), INTERVAL minute_ago MINUTE)=? `, [returnMoment()]);
         let list = result?.result ?? [];
-        sendEmail(list);
+        await sendEmail(list);
 
 })
 
