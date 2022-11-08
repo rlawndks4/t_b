@@ -3,7 +3,7 @@ const router = express.Router();
 const { upload } = require('../config/multerConfig')
 const {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, checkPw, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
-    findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo,//select
+    findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo, getTodoCountByCanlendar,//select
     onSignUp, addTodo,  //insert 
     changePassword, changeStatus, updateTodo, updateCheckIsMonday, checkLocation,//update
     getAddressByText,//place
@@ -36,5 +36,5 @@ router.post('/changestatus', changeStatus);
 router.post('/gettodoliststatistics', getToDoListStatistics);
 router.post('/checklocation', checkLocation);
 router.delete('/deletetodo/:pk', deleteToto);
-
+router.post('/gettodocountbycanlendar', getTodoCountByCanlendar)
 module.exports = router;

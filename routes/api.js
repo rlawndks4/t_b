@@ -809,9 +809,51 @@ const checkLocation = (req, res) => {
         return response(req, res, -200, "서버 에러 발생", [])
     }
 }
+const getTodoCountByCanlendar = (req, res) => {
+    try{
+        let {user_pk, arr} = req.body;
+        let arr_str = "";
+        for(var i = 0;i<arr.length;i++){
+            if(i!=0){
+                arr_str += ','
+            }
+            arr_str += `'${arr[i]}'`
+        }
+        db.query(`SELECT * FROM todo_table WHERE select_date IN (${arr_str}) AND user_pk=${user_pk} ORDER BY select_date ASC`,(err, result)=>{
+            if (err) {
+                console.log(err)
+                return response(req, res, -200, "서버 에러 발생", [])
+            } else {
+                let i = 0;
+                let  j = 0;
+                let result_ = [];
+                let list = [];
+                for(i = 0;i<arr.length;i++){
+                    list[i] = {
+                        todo:0,
+                        not_todo:0,
+                    }
+                    for( j =0;j<result.length;j++){
+                        if(arr[i]==result[j].select_date){
+                            if(result[j].category==0){
+                                list[i].todo++;
+                            }else{
+                                list[i].not_todo++;
+                            }
+                        }
+                    }
+                }
+                return response(req, res, 100, "success", list)
+            }
+        })
+    } catch (e) {
+        console.log(e)
+        return response(req, res, -200, "서버 에러 발생", [])
+    }
+}
 module.exports = {
     onLoginById, getUserToken, onLogout, checkExistId, checkExistNickname, checkPw, sendSms, kakaoCallBack, editMyInfo, onLoginBySns,//auth
-    findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo,//select
+    findIdByPhone, findAuthByNameAndEmail, findPwByNameAndId, getUserContent, getTodoList, getToDoListStatistics, getMyInfo, getTodoCountByCanlendar,//select
     onSignUp, addTodo,  //insert 
     changePassword, changeStatus, updateTodo, updateCheckIsMonday, checkLocation,//update
     getAddressByText,//place
